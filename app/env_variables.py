@@ -2,11 +2,11 @@ from decouple import config
 
 
 class LocalConfig:
-    SECRET_KEY: str = config('SECRET_KEY')
-    ALGORITHM: str = config('ALGORITHM')
+    JWT_SECRET_KEY: str = config('JWT_SECRET_KEY')
+    JWT_ALGORITHM: str = config('JWT_ALGORITHM')
     DATABASE_NAME: str = config('DATABASE_NAME')
     MONGODB_URL: str = config('MONGODB_URL')
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = config('ACCESS_TOKEN_EXPIRE_MINUTES', cast=int)
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = config('JWT_ACCESS_TOKEN_EXPIRE_MINUTES', cast=int)
     ALLOWED_HOSTS: list[str] = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.split(',')])
 
 

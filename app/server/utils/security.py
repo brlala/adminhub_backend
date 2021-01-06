@@ -2,12 +2,15 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from pydantic import BaseModel
-from app.env_variables import local_config
 
+from app.env_variables import local_config
+from app.server.db_utils.portal_user import get_portal_user
+from app.server.models.current_user import CurrentUserSchema
+from app.server.models.login import UserInDB, TokenData, User
+from app.server.models.portal_user import PortalUserSchema
 
 fake_users_db = {
     "johndoe": {
@@ -18,32 +21,14 @@ fake_users_db = {
         "disabled": False,
     }
 }
-
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    username: Optional[str] = None
-
-
-class User(BaseModel):
-    username: str
-    email: Optional[str] = None
-    full_name: Optional[str] = None
-    disabled: Optional[bool] = None
-
-
-class UserInDB(User):
-    hashed_password: str
-
+credentials_exception = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Could not validate credentials",
+    headers={"WWW-Authenticate": "Bearer"},
+)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login/account")
 app = FastAPI()
 
 
@@ -64,11 +49,11 @@ def get_user(db, username: str):
         return UserInDB(**user_dict)
 
 
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
+async def authenticate_user(username: str, password: str):
+    user = await get_portal_user(username)
     if not user:
         return False
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(password, user.password):
         return False
     return user
 
@@ -80,60 +65,39 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, local_config.SECRET_KEY, algorithm=local_config.ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, local_config.JWT_SECRET_KEY, algorithm=local_config.JWT_ALGORITHM)
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+def check_access_token(token: str = Depends(oauth2_scheme)):
     try:
-        payload = jwt.decode(token, local_config.SECRET_KEY, algorithms=[local_config.ALGORITHM])
-        username: str = payload.get("sub")
+        payload = jwt.decode(token, local_config.JWT_SECRET_KEY, algorithms=[local_config.JWT_ALGORITHM])
+        username: str = payload.get("username")
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
+    except Exception as e:
+        raise credentials_exception
+
+
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> CurrentUserSchema:
+    try:
+        payload = jwt.decode(token, local_config.JWT_SECRET_KEY, algorithms=[local_config.JWT_ALGORITHM])
+        username: str = payload.get("username")
+        print(payload)
+        if username is None:
+            raise credentials_exception
     except JWTError:
         raise credentials_exception
-    user = get_user(fake_users_db, username=token_data.username)
+    user = await get_portal_user(username)
+    # in case we want to disable a user immediately
+    payload.update({"is_active": user.is_active})
     if user is None:
         raise credentials_exception
-    return user
+    return CurrentUserSchema(**payload)
 
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)):
-    if current_user.disabled:
+async def get_current_active_user(current_user: CurrentUserSchema = Depends(get_current_user)) -> CurrentUserSchema:
+    if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
-#
-#
-# @app.post("/token", response_model=Token)
-# async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-#     user = authenticate_user(fake_users_db, form_data.username, form_data.password)
-#     if not user:
-#         raise HTTPException(
-#             status_code=status.HTTP_401_UNAUTHORIZED,
-#             detail="Incorrect username or password",
-#             headers={"WWW-Authenticate": "Bearer"},
-#         )
-#     access_token_expires = timedelta(minutes=local_config.ACCESS_TOKEN_EXPIRE_MINUTES)
-#     access_token = create_access_token(
-#         data={"sub": user.username}, expires_delta=access_token_expires
-#     )
-#     return {"access_token": access_token, "token_type": "bearer"}
-#
-#
-# @app.get("/users/me/", response_model=User)
-# async def read_users_me(current_user: User = Depends(get_current_active_user)):
-#     return current_user
-#
-#
-# @app.get("/users/me/items/")
-# async def read_own_items(current_user: User = Depends(get_current_active_user)):
-#     return [{"item_id": "Foo", "owner": current_user.username}]
-
-print(get_password_hash('mysecret'))
-print(verify_password('mysecret', '$12b$12$OFz3qyYkYlrDbzIYESo5H.EXr7lDnlfCwCsvUYWhg464r66VQ2sGO'))

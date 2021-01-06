@@ -3,9 +3,6 @@ from typing import Optional
 from bson import ObjectId
 from pydantic import BaseModel, EmailStr, Field
 
-from app.server.models.pydantic_objectid import PyObjectId
-from app.server.models.rwmodels import RWModel
-
 
 class StudentSchema(BaseModel):
     # id: Optional[PyObjectId] = Field(alias='_id')
