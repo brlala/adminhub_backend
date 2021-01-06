@@ -7,7 +7,7 @@ from app.server.models.pydantic_objectid import PyObjectId
 from app.server.models.rwmodels import RWModel
 
 
-class PortalUserSchema(BaseModel):
+class StudentSchema(BaseModel):
     # id: Optional[PyObjectId] = Field(alias='_id')
     fullname: str = Field(...)
     email: EmailStr = Field(...)

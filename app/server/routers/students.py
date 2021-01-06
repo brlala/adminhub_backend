@@ -8,10 +8,10 @@ from app.server.db_utils.students import (
     retrieve_students,
     update_student,
 )
-from app.server.models.portal_user import (
+from app.server.models.student_user import (
     ErrorResponseModel,
     ResponseModel,
-    PortalUserSchema,
+    StudentSchema,
     UpdateStudentModel,
 )
 
@@ -23,7 +23,7 @@ router = APIRouter(
 
 
 @router.post("/", response_description="Student data added into the database")
-async def add_student_data(student: PortalUserSchema = Body(...)):
+async def add_student_data(student: StudentSchema = Body(...)):
     student = jsonable_encoder(student)
     new_student = await add_student(student)
     return ResponseModel(new_student, "Student added successfully.")

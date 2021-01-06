@@ -2,7 +2,7 @@ from bson import ObjectId
 
 from app.server.db.client import db
 
-portal_user_collection = db['students_collection']
+student_user_collection = db['students_collection']
 
 
 def student_helper(student) -> dict:
@@ -22,7 +22,7 @@ async def retrieve_students():
     :return:
     """
     students = []
-    async for student in portal_user_collection.find():
+    async for student in student_user_collection.find():
         students.append(student_helper(student))
     return students
 
@@ -33,8 +33,8 @@ async def add_student(student_data: dict) -> dict:
     :param student_data:
     :return:
     """
-    student = await portal_user_collection.insert_one(student_data)
-    new_student = await portal_user_collection.find_one({"_id": student.inserted_id})
+    student = await student_user_collection.insert_one(student_data)
+    new_student = await student_user_collection.find_one({"_id": student.inserted_id})
     return student_helper(new_student)
 
 
@@ -44,7 +44,7 @@ async def retrieve_student(id: str) -> dict:
     :param id:
     :return:
     """
-    student = await portal_user_collection.find_one({"_id": ObjectId(id)})
+    student = await student_user_collection.find_one({"_id": ObjectId(id)})
     if student:
         return student_helper(student)
 
@@ -59,9 +59,9 @@ async def update_student(id: str, data: dict):
     # Return false if an empty request body is sent.
     if len(data) < 1:
         return False
-    student = await portal_user_collection.find_one({"_id": ObjectId(id)})
+    student = await student_user_collection.find_one({"_id": ObjectId(id)})
     if student:
-        updated_student = await portal_user_collection.update_one(
+        updated_student = await student_user_collection.update_one(
             {"_id": ObjectId(id)}, {"$set": data}
         )
         if updated_student:
@@ -75,7 +75,7 @@ async def delete_student(id: str):
     :param id:
     :return:
     """
-    student = await portal_user_collection.find_one({"_id": ObjectId(id)})
+    student = await student_user_collection.find_one({"_id": ObjectId(id)})
     if student:
-        await portal_user_collection.delete_one({"_id": ObjectId(id)})
+        await student_user_collection.delete_one({"_id": ObjectId(id)})
         return True
