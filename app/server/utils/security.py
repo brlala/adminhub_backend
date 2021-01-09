@@ -84,7 +84,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> CurrentUserSc
     try:
         payload = jwt.decode(token, local_config.JWT_SECRET_KEY, algorithms=[local_config.JWT_ALGORITHM])
         username: str = payload.get("username")
-        print(payload)
         if username is None:
             raise credentials_exception
     except JWTError:
