@@ -1,3 +1,4 @@
+import time
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -69,15 +70,12 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-def check_access_token(token: str = Depends(oauth2_scheme)):
+def decode_access_token(token: str) -> dict:
     try:
-        payload = jwt.decode(token, local_config.JWT_SECRET_KEY, algorithms=[local_config.JWT_ALGORITHM])
-        username: str = payload.get("username")
-        if username is None:
-            raise credentials_exception
-        token_data = TokenData(username=username)
-    except Exception as e:
-        raise credentials_exception
+        decoded_token = jwt.decode(token, local_config.JWT_SECRET_KEY, algorithms=[local_config.JWT_ALGORITHM])
+        return decoded_token if decoded_token["exp"] >= time.time() else None
+    except:
+        return {}
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> CurrentUserSchema:
