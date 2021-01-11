@@ -43,7 +43,7 @@ def clean_dict_helper(d):
 def form_query(fields: list[tuple]) -> dict:
     query = {}
     for key, value in fields:
-        if value:
+        if value is not ...:
             query[key] = value
     return query
 

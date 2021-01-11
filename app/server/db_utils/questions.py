@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from re import escape
 
@@ -21,7 +22,7 @@ def question_helper(question) -> dict:
     }
 
 
-async def get_questions_from_db(*, current_page: int, page_size: int, sorter: str=None, question_text: str,
+async def get_questions_from_db(*, current_page: int, page_size: int, sorter: str = None, question_text: str,
                                 language: str, topic: str, created_at: datetime) -> list[QuestionSchemaDb]:
     sort = []
     if sorter:
@@ -34,9 +35,10 @@ async def get_questions_from_db(*, current_page: int, page_size: int, sorter: st
             else:
                 sort.append((stringcase.snakecase(key), -1))
 
-    db_key = [("topic", topic),
-              (f"text.{language}", Regex(f".*{escape(question_text)}.*", "i") if question_text else None),
-              ("created_at", created_at)]
+    db_key = [("topic", topic if topic else ...),
+              (f"text.{language}", Regex(f".*{escape(question_text)}.*", "i") if question_text else ...),
+              ("created_at", created_at if created_at else ...),
+              ("is_active", True)]
 
     query = form_query(db_key)
 
@@ -46,3 +48,25 @@ async def get_questions_from_db(*, current_page: int, page_size: int, sorter: st
     async for question in cursor:
         questions.append(QuestionSchemaDb(**question_helper(question)))
     return questions
+
+
+async def get_questions_count_from_db(*, question_text: str, language: str, topic: str, created_at: datetime) -> int:
+    db_key = [("topic", topic if topic else ...),
+              (f"text.{language}", Regex(f".*{escape(question_text)}.*", "i") if question_text else ...),
+              ("created_at", created_at if created_at else ...),
+              ("is_active", True)]
+
+    query = form_query(db_key)
+    print(query)
+    count = question_user_collection.count_documents(query)
+    return await count
+
+
+async def get_questions_and_count_from_db(*, current_page: int, page_size: int, sorter: str = None, question_text: str,
+                                          language: str, topic: str, created_at: datetime) -> (list[QuestionSchemaDb], int):
+    questions = await get_questions_from_db(current_page=current_page, page_size=page_size, sorter=sorter, topic=topic,
+                              question_text=question_text, language=language, created_at=created_at)
+    total = await get_questions_count_from_db(question_text=question_text, language=language, created_at=created_at, topic=topic)
+    return questions, total
+
+

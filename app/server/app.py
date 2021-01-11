@@ -2,7 +2,7 @@ from fastapi import Depends, FastAPI
 from app.dependencies import get_query_token, get_token_header
 # from .internal import admin
 # from app.server.db.client import connect_to_mongo, close_mongo_connection, get_database
-from app.server.routers import items, users, students, login, questions
+from app.server.routers import items, users, students, login, questions, flows
 from app.env_variables import local_config
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -21,6 +21,8 @@ app.include_router(items.router)
 app.include_router(students.router)
 app.include_router(login.router)
 app.include_router(questions.router)
+app.include_router(questions.router)
+app.include_router(flows.router)
 # app.include_router(test.router)
 # app.add_event_handler("shutdown", close_mongo_connection)
 # app.include_router(

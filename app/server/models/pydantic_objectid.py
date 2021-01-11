@@ -22,5 +22,3 @@ class PyObjectId(ObjectId):
 class Question(BaseModel):
     hey: PyObjectId
 
-
-print(Question(**{"hey": ObjectId("5fb4804f3c137c45a8f16a4e")}))

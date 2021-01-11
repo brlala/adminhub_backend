@@ -4,6 +4,7 @@ from typing import Optional
 from bson import ObjectId
 from pydantic import BaseModel
 
+from app.server.models.flow import FlowSchemaDb, FlowSchemaDbOut
 from app.server.utils.common import to_camel
 
 
@@ -35,6 +36,7 @@ class QuestionSchemaDb(BaseModel):
     active_at: Optional[datetime]
     expire_at: Optional[datetime]
     is_active: bool
+    answer_flow: Optional[FlowSchemaDb]
 
     class Config:
         schema_extra = {
@@ -75,6 +77,7 @@ class QuestionSchemaDb(BaseModel):
 
 
 class QuestionSchemaOut(QuestionSchemaDb):
+    answer_flow: Optional[FlowSchemaDbOut]
     class Config:
         schema_extra = {
             "example": {
@@ -113,3 +116,9 @@ class QuestionSchemaOut(QuestionSchemaDb):
         }
         alias_generator = to_camel
         allow_population_by_field_name = True
+
+
+class GetQuestionsTable(BaseModel):
+    data: list[QuestionSchemaOut]
+    success: bool
+    total: int
