@@ -1,3 +1,4 @@
+import stringcase
 from bson import ObjectId
 
 
@@ -45,3 +46,7 @@ def form_query(fields: list[tuple]) -> dict:
         if value:
             query[key] = value
     return query
+
+
+def to_camel(string: str) -> str:
+    return stringcase.camelcase(string)
