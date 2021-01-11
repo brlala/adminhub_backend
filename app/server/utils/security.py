@@ -7,11 +7,10 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-from app.env_variables import local_config
+from app.server.core.env_variables import local_config
 from app.server.db_utils.portal_user import get_portal_user
 from app.server.models.current_user import CurrentUserSchema
-from app.server.models.login import UserInDB, TokenData, User
-from app.server.models.portal_user import PortalUserSchema
+from app.server.models.login import UserInDB
 
 fake_users_db = {
     "johndoe": {

@@ -6,7 +6,7 @@ from starlette import status
 
 from app.server.db_utils.portal_user_group import get_user_permissions
 from app.server.utils.security import authenticate_user, create_access_token
-from app.env_variables import local_config
+from app.server.core.env_variables import local_config
 
 router = APIRouter(
     tags=["security"],

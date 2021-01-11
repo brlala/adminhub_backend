@@ -17,7 +17,7 @@ class FlowSchemaDb(BaseModel):
     name: Optional[str]
     flow: list[dict]
     type: str
-    platforms: list[str]
+    platforms: Optional[list[str]]
     params: Optional[list[str]]
 
 

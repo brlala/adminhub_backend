@@ -1,15 +1,9 @@
-from datetime import timedelta
-
 from fastapi import APIRouter
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import Depends
 
-from app.env_variables import local_config
-from app.server.db_utils.portal_user_group import get_user_permissions
 from app.server.models.current_user import CurrentUserSchema
-from app.server.models.login import Token, User
-from app.server.models.portal_user import PortalUserSchema
-from app.server.utils.security import authenticate_user, create_access_token, get_current_active_user
+from app.server.models.login import User
+from app.server.utils.security import get_current_active_user
 
 router = APIRouter()
 

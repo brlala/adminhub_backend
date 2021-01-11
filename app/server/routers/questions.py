@@ -30,6 +30,7 @@ class CurrentUserParams(BaseModel):
 async def get_questions(topic: Optional[str] = Query(None),
                         question_text: Optional[str] = Query(None, alias="questionText"),
                         created_at: Optional[datetime] = Query(None, alias="createdAt"),
+                        updated_at: Optional[list[datetime]] = Query(None, alias="updatedAt"),
                         sort_by: str = Query(None, alias="sortBy"),
                         current_page: int = Query(1, alias="current"),
                         page_size: int = Query(20, alias="pageSize"),
@@ -37,7 +38,7 @@ async def get_questions(topic: Optional[str] = Query(None),
     questions, total = await get_questions_and_count_from_db(current_page=current_page, page_size=page_size,
                                                              sorter=sort_by, topic=topic,
                                                              question_text=question_text, language=language,
-                                                             created_at=created_at)
+                                                             created_at=created_at, updated_at=updated_at)
 
     for q in questions:
         for a in q.answers:

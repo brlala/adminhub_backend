@@ -1,5 +1,11 @@
+import importlib
+from typing import Any
+
 import stringcase
 from bson import ObjectId
+from fastapi import FastAPI
+
+from app.server.conf import settings
 
 
 def without_keys(d, keys):
@@ -50,3 +56,31 @@ def form_query(fields: list[tuple]) -> dict:
 
 def to_camel(string: str) -> str:
     return stringcase.camelcase(string)
+
+
+def resolve_dotted_path(path: str) -> Any:
+    """
+    Retrieves attribute (var, function, class, etc.) from module by dotted path
+    .. code-block:: python
+        from datetime.datetime import utcnow as default_utcnow
+        utcnow = resolve_dotted_path('datetime.datetime.utcnow')
+        assert utcnow == default_utcnow
+    :param path: dotted path to the attribute in module
+    :return: desired attribute or None
+    """
+    splitted = path.split(".")
+    if len(splitted) <= 1:
+        return importlib.import_module(path)
+    module, attr = ".".join(splitted[:-1]), splitted[-1]
+    module = importlib.import_module(module)
+    return getattr(module, attr)
+
+
+def get_current_app() -> FastAPI:
+    """
+    Retrieves FastAPI app instance from the path, specified in project's conf.
+    :return: FastAPI app
+    """
+    # TODO: cache this
+    app = resolve_dotted_path(settings.fastapi_app)
+    return app
