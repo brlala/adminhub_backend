@@ -2,12 +2,10 @@ from datetime import datetime
 
 from bson import ObjectId
 
-from app.server.db.client import db
+from app.server.db.collections import flow_user_collection
 from app.server.models.flow import FlowSchemaDb
 from app.server.models.question import QuestionSchemaDb
 from app.server.utils.common import clean_dict_helper
-
-flow_user_collection = db['flow']
 
 
 def flow_helper(flow) -> dict:

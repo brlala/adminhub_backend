@@ -4,12 +4,10 @@ from re import escape
 import stringcase
 from bson import Regex
 
-from app.server.db.client import db
+from app.server.db.collections import question_user_collection
 from app.server.models.question import QuestionSchemaDb
 from app.server.utils.common import clean_dict_helper, form_query
 from app.server.utils.timezone import make_timezone_aware
-
-question_user_collection = db['question']
 
 
 def question_helper(question) -> dict:
@@ -51,14 +49,17 @@ async def get_questions_count_from_db(*, query: dict) -> int:
 async def get_questions_and_count_from_db(*, current_page: int, page_size: int, sorter: str = None, question_text: str,
                                           language: str, topic: str, created_at: datetime,
                                           updated_at: list[datetime]) -> (list[QuestionSchemaDb], int):
-    updated_at_start, updated_at_end = updated_at
+    if updated_at:
+        updated_at_start, updated_at_end = updated_at
+    if created_at:
+        created_at_start, created_at_end = created_at
     db_key = [("topic", Regex(f".*{escape(topic)}.*", "i") if topic else ...),
               (f"text.{language}", Regex(f".*{escape(question_text)}.*", "i") if question_text else ...),
-              ("created_at", created_at if created_at else ...),
+              ("created_at", {"$gte": make_timezone_aware(created_at_start),
+                              "$lte": make_timezone_aware(created_at_end)} if created_at else ...),
               ("is_active", True),
               ("updated_at", {"$gte": make_timezone_aware(updated_at_start),
                               "$lte": make_timezone_aware(updated_at_end)} if updated_at else ...)]
-
     query = form_query(db_key)
 
     questions = await get_questions_from_db(current_page=current_page, page_size=page_size, sorter=sorter, query=query)

@@ -1,9 +1,7 @@
 from bson import ObjectId, Regex
 
-from app.server.db.client import db
+from app.server.db.collections import portal_user_collection
 from app.server.models.portal_user import PortalUserSchema
-
-portal_user_collection = db['portal_user']
 
 
 # def student_helper(student) -> dict:

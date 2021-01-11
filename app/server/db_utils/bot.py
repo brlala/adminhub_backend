@@ -1,10 +1,8 @@
-from bson import ObjectId
-
-from app.server.db.client import db
+from app.server.db.collections import bot_user_collection
 from app.server.models.bot import BotSchemaDb
 from app.server.utils.common import clean_dict_helper, form_query
 
-bot_user_collection = db['bot']
+
 
 
 def bot_helper(bot):

@@ -1,19 +1,7 @@
 from bson import ObjectId
 
-from app.server.db.client import db
+from app.server.db.collections import portal_user_group_collection
 
-collection = db['portal_user_group']
-
-
-# def student_helper(student) -> dict:
-#     return {
-#         "id": str(student["_id"]),
-#         "fullname": student["fullname"],
-#         "email": student["email"],
-#         "course_of_study": student["course_of_study"],
-#         "year": student["year"],
-#         "GPA": student["gpa"],
-#     }
 
 async def get_user_permissions(_id: str):
     """
@@ -29,7 +17,7 @@ async def get_user_permissions(_id: str):
         {"$project": {"name": 1, "permissions": 1}}
     ]
     resp = {}
-    async for doc in collection.aggregate(pipeline):
+    async for doc in portal_user_group_collection.aggregate(pipeline):
         resp['access'] = doc['name']
         resp['permissions'] = [permission['name'] for permission in doc['permissions']]
         return resp

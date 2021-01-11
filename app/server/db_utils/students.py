@@ -1,8 +1,6 @@
 from bson import ObjectId
 
-from app.server.db.client import db
-
-student_user_collection = db['students_collection']
+from app.server.db.collections import student_user_collection
 
 
 def student_helper(student) -> dict:
