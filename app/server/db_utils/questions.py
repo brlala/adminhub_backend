@@ -22,7 +22,8 @@ def question_helper(question) -> dict:
 
 async def get_questions_from_db(*, current_page: int, page_size: int, sorter: str = None, query: dict) -> list[
     QuestionSchemaDb]:
-    sort = []
+    # always show the newest first
+    sort = [("_id", -1)]
     if sorter:
         # [("answers", 1), ("bot_user_group", 1)]
         for s in sorter.split(','):
