@@ -28,7 +28,7 @@ credentials_exception = HTTPException(
 )
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login/account")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/account")
 app = FastAPI()
 
 

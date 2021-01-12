@@ -9,3 +9,7 @@ from app.server.core.server_config import db_config
 def make_timezone_aware(dt: datetime):
     singapore = timezone(local_config.TIMEZONE)
     return singapore.localize(dt)
+
+
+def get_local_datetime_now():
+    return make_timezone_aware(datetime.now())

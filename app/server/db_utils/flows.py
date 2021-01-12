@@ -2,10 +2,11 @@ from datetime import datetime
 
 from bson import ObjectId
 
-from app.server.db.collections import flow_user_collection
-from app.server.models.flow import FlowSchemaDb
-from app.server.models.question import QuestionSchemaDb
+from app.server.db.collections import flow_collection as collection
+from app.server.models.current_user import CurrentUserSchema
+from app.server.models.flow import FlowSchemaDb, NewFlow
 from app.server.utils.common import clean_dict_helper
+from app.server.utils.timezone import get_local_datetime_now
 
 
 def flow_helper(flow) -> dict:
@@ -16,35 +17,46 @@ def flow_helper(flow) -> dict:
     return clean_dict_helper(results)
 
 
-async def get_flows_from_db(*, current_page: int, page_size: int, sorter: str = None, question_text: str,
-                            language: str, topic: str, created_at: datetime) -> list[QuestionSchemaDb]:
-    pass
-    # sort = []
-    # if sorter:
-    #     # [("answers", 1), ("bot_user_group", 1)]
-    #     for s in sorter.split(','):
-    #         order = s[:1]
-    #         key = s[1:]
-    #         if order == '+':
-    #             sort.append((stringcase.snakecase(key), 1))
-    #         else:
-    #             sort.append((stringcase.snakecase(key), -1))
-    #
-    # db_key = [("topic", topic),
-    #           (f"text.{language}", Regex(f".*{escape(question_text)}.*", "i") if question_text else None),
-    #           ("created_at", created_at)]
-    #
-    # query = form_query(db_key)
-    #
-    # cursor = question_user_collection.find(query, sort=sort)
-    # cursor.skip((current_page - 1) * page_size).limit(page_size)
-    # questions = []
-    # async for question in cursor:
-    #     questions.append(QuestionSchemaDb(**flow_helper(question)))
-    # return questions
-
-
-async def get_flow_from_db(_id: str) -> FlowSchemaDb:
+async def get_flow_one(_id: str) -> FlowSchemaDb:
     query = {"_id": ObjectId(_id)}
-    async for flow in flow_user_collection.find(query):
+    async for flow in collection.find(query):
         return FlowSchemaDb(**flow_helper(flow))
+
+
+async def get_flows_list() -> list[FlowSchemaDb]:
+    query, projection = get_flows_cursor()
+    flows = []
+    async for flow in collection.find(query, projection=projection):
+        flows.append(FlowSchemaDb(**flow_helper(flow)))
+    return flows
+
+
+async def get_flows_filtered_field_list(field=None):
+    query, projection = get_flows_cursor(field)
+    flows = []
+    async for flow in collection.find(query, projection=projection):
+        flows.append(flow_helper(flow))
+    return flows
+
+
+def get_flows_cursor(field=None):
+    projection = None
+    query = {"is_active": True, "name": {"$ne": None}}
+    if field:
+        projection = {f: 1 for f in field.split(',')}
+    return query, projection
+
+
+async def add_flows_to_db(flow: NewFlow, current_user:CurrentUserSchema):
+    doc = {
+        "updated_at": get_local_datetime_now(),
+        "topic": flow.topic,
+        "created_at": get_local_datetime_now(),
+        "updated_by": ObjectId(current_user.userId),
+        "type": flow.type,
+        "is_active": True,
+        "created_by": ObjectId(current_user.userId),
+        "flow": flow.flow_items
+    }
+    result = await collection.insert_one(doc)
+    return result.inserted_id

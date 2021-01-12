@@ -1,6 +1,8 @@
 from datetime import timedelta
+from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from starlette import status
 
@@ -17,8 +19,8 @@ router = APIRouter(
 class LoginParams(BaseModel):
     username: str
     password: str
-    autoLogin: bool
-    type: str
+    autoLogin: Optional[str]
+    type: Optional[str]
 
     class Config:
         schema_extra = {

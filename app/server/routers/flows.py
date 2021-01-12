@@ -1,14 +1,14 @@
-from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 from pydantic import BaseModel
 
-from ..db_utils.flows import get_flow_from_db
+from ..db_utils.flows import get_flow_one, get_flows_list, get_flows_filtered_field_list
 from ..models.flow import FlowSchemaDbOut
 
 router = APIRouter(
     tags=["flows"],
+    prefix='/flows',
     responses={404: {"description": "Not found"}},
 )
 
@@ -24,7 +24,21 @@ class CurrentUserParams(BaseModel):
         }
 
 
-@router.get("/flow/{flow_id}", response_model=FlowSchemaDbOut)
+@router.get("/", response_model=list[FlowSchemaDbOut])
+async def get_flows():
+    flows = await get_flows_list()
+    return flows
+
+
+@router.get("/fields")
+async def get_flows(field: Optional[str] = None):
+    flows = await get_flows_filtered_field_list(field)
+    return flows
+
+
+@router.get("/{flow_id}", response_model=FlowSchemaDbOut)
 async def get_flow(flow_id: str):
-    flow = await get_flow_from_db(flow_id)
+    flow = await get_flow_one(flow_id)
     return flow
+
+

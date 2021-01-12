@@ -4,8 +4,10 @@ from fastapi import FastAPI
 from app.server.routers import items, users, students, login, questions, flows, bot
 from app.server.core.env_variables import local_config
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 app = FastAPI()
+# app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=local_config.ALLOWED_HOSTS,

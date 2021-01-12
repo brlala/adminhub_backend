@@ -31,3 +31,14 @@ class GetFlowsTable(BaseModel):
     data: list[FlowSchemaDbOut]
     success: bool
     total: int
+
+
+class FlowItem(BaseModel):
+    type: str
+    data: dict
+
+
+class NewFlow(BaseModel):
+    topic: str
+    type: str
+    flow_items: list[dict]

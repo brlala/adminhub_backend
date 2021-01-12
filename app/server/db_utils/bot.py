@@ -13,7 +13,7 @@ def bot_helper(bot):
     return clean_dict_helper(results)
 
 
-async def get_bot_from_db(abbr: str) -> BotSchemaDb:
+async def get_bot_db(abbr: str) -> BotSchemaDb:
     query = {"abbreviation": abbr, "is_active": True}
     print(query)
     async for bot in bot_user_collection.find(query):

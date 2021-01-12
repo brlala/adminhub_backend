@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from bson import ObjectId
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.server.models.flow import FlowSchemaDb, FlowSchemaDbOut
 from app.server.utils.common import to_camel
@@ -122,3 +122,18 @@ class GetQuestionsTable(BaseModel):
     data: list[QuestionSchemaOut]
     success: bool
     total: int
+
+
+class NewQuestion(BaseModel):
+    language: Optional[str] = 'EN'
+    main_question: str = Field(alias='mainQuestion')
+    response: str
+    question_time: Optional[list[str]] = Field(alias='questionTime')
+    response_type: str = Field(alias='responseType')
+    tags: Optional[list[str]]
+    topic: str
+    variations: Optional[str]
+
+
+class DeleteQuestion(BaseModel):
+    key: list[str]
