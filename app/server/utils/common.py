@@ -1,4 +1,5 @@
 import importlib
+from enum import Enum
 from typing import Any
 
 import stringcase
@@ -6,6 +7,11 @@ from bson import ObjectId
 from fastapi import FastAPI
 
 from app.server.conf import settings
+
+
+class Method(Enum):
+    ADD = 1
+    EDIT = 2
 
 
 def without_keys(d, keys):

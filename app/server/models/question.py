@@ -124,10 +124,12 @@ class GetQuestionsTable(BaseModel):
     total: int
 
 
-class NewQuestion(BaseModel):
+class QuestionIn(BaseModel):
+    id: Optional[str]
     language: Optional[str] = 'EN'
     main_question: str = Field(alias='mainQuestion')
-    response: str
+    text_response: Optional[str] = Field(alias='textResponse')
+    flow_response: Optional[str] = Field(alias='flowResponse')
     question_time: Optional[list[str]] = Field(alias='questionTime')
     response_type: str = Field(alias='responseType')
     tags: Optional[list[str]]
