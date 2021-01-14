@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, date
 from re import escape
 
 import stringcase
@@ -53,19 +53,15 @@ async def get_questions_count_db(*, query: dict) -> int:
 
 
 async def get_questions_and_count_db(*, current_page: int, page_size: int, sorter: str = None, question_text: str,
-                                     language: str, topic: str, created_at: datetime,
-                                     updated_at: list[datetime], triggered_counts: list[int]) -> (
+                                     language: str, topic: str,
+                                     updated_at: list[date], triggered_counts: list[int]) -> (
         list[QuestionSchemaDb], int):
     if updated_at:
         updated_at_start, updated_at_end = updated_at
-    if created_at:
-        created_at_start, created_at_end = created_at
     db_key = [("topic", Regex(f".*{escape(topic)}.*", "i") if topic else ...),
               (f"text.{language}", Regex(f".*{escape(question_text)}.*", "i") if question_text else ...),
               (f"triggered_count", {"$gte": triggered_counts[0],
                                     "$lte": triggered_counts[1]} if triggered_counts else ...),
-              ("created_at", {"$gte": make_timezone_aware(created_at_start),
-                              "$lte": make_timezone_aware(created_at_end)} if created_at else ...),
               ("is_active", True),
               ("updated_at", {"$gte": make_timezone_aware(updated_at_start),
                               "$lte": make_timezone_aware(updated_at_end)} if updated_at else ...)]

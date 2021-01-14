@@ -1,14 +1,17 @@
-from datetime import datetime
+from datetime import datetime, date, time
+from typing import Union
 
 from pytz import timezone
 
 from app.server.core.env_variables import local_config
-from app.server.core.server_config import db_config
 
 
-def make_timezone_aware(dt: datetime):
+def make_timezone_aware(dt: Union[datetime, date]):
+    midnight = dt
+    if isinstance(dt, date):
+        midnight = datetime.combine(dt, time.min)
     singapore = timezone(local_config.TIMEZONE)
-    return singapore.localize(dt)
+    return singapore.localize(midnight)
 
 
 def get_local_datetime_now():
