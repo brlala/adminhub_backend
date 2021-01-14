@@ -11,7 +11,7 @@ from app.server.db_utils.flows import add_flows_to_db
 from app.server.models.current_user import CurrentUserSchema
 from app.server.models.flow import NewFlow
 from app.server.models.question import QuestionSchemaDb, QuestionIn
-from app.server.utils.common import clean_dict_helper, form_query, Method
+from app.server.utils.common import clean_dict_helper, form_query, RequestMethod
 from app.server.utils.timezone import make_timezone_aware, get_local_datetime_now
 
 
@@ -35,9 +35,9 @@ async def get_questions_db(*, current_page: int, page_size: int, sorter: str = N
             order = s[:1]
             key = s[1:]
             if order == '+':
-                sort.append((stringcase.snakecase(key), 1))
+                sort = [(stringcase.snakecase(key), 1)]
             else:
-                sort.append((stringcase.snakecase(key), -1))
+                sort = [(stringcase.snakecase(key), -1)]
 
     cursor = collection.find(query, sort=sort)
     cursor.skip((current_page - 1) * page_size).limit(page_size)
@@ -54,13 +54,16 @@ async def get_questions_count_db(*, query: dict) -> int:
 
 async def get_questions_and_count_db(*, current_page: int, page_size: int, sorter: str = None, question_text: str,
                                      language: str, topic: str, created_at: datetime,
-                                     updated_at: list[datetime]) -> (list[QuestionSchemaDb], int):
+                                     updated_at: list[datetime], triggered_counts: list[int]) -> (
+        list[QuestionSchemaDb], int):
     if updated_at:
         updated_at_start, updated_at_end = updated_at
     if created_at:
         created_at_start, created_at_end = created_at
     db_key = [("topic", Regex(f".*{escape(topic)}.*", "i") if topic else ...),
               (f"text.{language}", Regex(f".*{escape(question_text)}.*", "i") if question_text else ...),
+              (f"triggered_count", {"$gte": triggered_counts[0],
+                                    "$lte": triggered_counts[1]} if triggered_counts else ...),
               ("created_at", {"$gte": make_timezone_aware(created_at_start),
                               "$lte": make_timezone_aware(created_at_end)} if created_at else ...),
               ("is_active", True),
@@ -80,12 +83,12 @@ async def get_topics_db():
 
 
 async def add_question_db(question: QuestionIn, current_user: CurrentUserSchema) -> str:
-    doc = await process_question(question, current_user, method=Method.ADD)
+    doc = await process_question(question, current_user, method=RequestMethod.ADD)
     result = await collection.insert_one(doc)
     return f"Added {1 if result.acknowledged else 0} question."
 
 
-async def process_question(question: QuestionIn, current_user: CurrentUserSchema, *, method: Method):
+async def process_question(question: QuestionIn, current_user: CurrentUserSchema, *, method: RequestMethod):
     variations = []
     if question.variations:
         for alt in question.variations.split('\n'):
@@ -139,7 +142,7 @@ async def process_question(question: QuestionIn, current_user: CurrentUserSchema
         "is_active": True
     }
 
-    if method == Method.EDIT:
+    if method == RequestMethod.EDIT:
         keys_to_remove = ["created_at", "created_by"]
         for key in keys_to_remove:
             doc.pop(key)
@@ -147,7 +150,7 @@ async def process_question(question: QuestionIn, current_user: CurrentUserSchema
 
 
 async def edit_question_db(question: QuestionIn, current_user: CurrentUserSchema):
-    doc = await process_question(question, current_user, method=Method.EDIT)
+    doc = await process_question(question, current_user, method=RequestMethod.EDIT)
     new_values = {"$set": doc}
     result = await collection.update_one({"_id": ObjectId(question.id)}, new_values)
     return f"Updated {result.modified_count} question."

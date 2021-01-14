@@ -9,9 +9,16 @@ from fastapi import FastAPI
 from app.server.conf import settings
 
 
-class Method(Enum):
+class RequestMethod(Enum):
     ADD = 1
     EDIT = 2
+
+
+class Status(Enum):
+    INACTIVE = 0
+    SCHEDULE = 1
+    ACTIVE = 2
+    DELETED = 3
 
 
 def without_keys(d, keys):

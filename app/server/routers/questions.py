@@ -9,7 +9,9 @@ from ..db_utils.questions import get_questions_and_count_db, get_topics_db, add_
     edit_question_db
 from ..models.current_user import CurrentUserSchema
 from ..models.question import GetQuestionsTable, QuestionIn, DeleteQuestion
+from ..utils.common import Status
 from ..utils.security import get_current_active_user
+from ..utils.timezone import get_local_datetime_now
 
 router = APIRouter(
     tags=["questions"],
@@ -37,13 +39,22 @@ async def get_questions(topic: Optional[str] = Query(None),
                         sort_by: str = Query(None, alias="sortBy"),
                         current_page: int = Query(1, alias="current"),
                         page_size: int = Query(20, alias="pageSize"),
+                        triggered_counts: list[int] = Query(None, alias="triggeredCount"),
                         language: str = 'EN'):
     questions, total = await get_questions_and_count_db(current_page=current_page, page_size=page_size,
-                                                             sorter=sort_by, topic=topic,
-                                                             question_text=question_text, language=language,
-                                                             created_at=created_at, updated_at=updated_at)
+                                                        sorter=sort_by, topic=topic,
+                                                        question_text=question_text, language=language,
+                                                        created_at=created_at, updated_at=updated_at,
+                                                        triggered_counts=triggered_counts)
 
     for q in questions:
+        q.status = Status.ACTIVE
+        if q.active_at:
+            if q.active_at <= get_local_datetime_now() <= q.expire_at:
+                q.status = Status.SCHEDULE
+            else:
+                q.status = Status.INACTIVE
+
         for a in q.answers:
             flow = await get_flow_one(a.flow['flow_id'])
             q.answer_flow = flow
@@ -66,7 +77,8 @@ async def add_question(question: QuestionIn, current_user: CurrentUserSchema = D
 
 
 @router.delete("/")
-async def remove_questions(question: DeleteQuestion, current_user: CurrentUserSchema = Depends(get_current_active_user)):
+async def remove_questions(question: DeleteQuestion,
+                           current_user: CurrentUserSchema = Depends(get_current_active_user)):
     status = await remove_questions_db(question.key, current_user)
     return {
         "status": status,

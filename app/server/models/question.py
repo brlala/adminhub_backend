@@ -5,7 +5,7 @@ from bson import ObjectId
 from pydantic import BaseModel, Field
 
 from app.server.models.flow import FlowSchemaDb, FlowSchemaDbOut
-from app.server.utils.common import to_camel
+from app.server.utils.common import to_camel, Status
 
 
 class QuestionVariationSchema(BaseModel):
@@ -21,7 +21,13 @@ class QuestionAnswerSchema(BaseModel):
     bot_user_group: Optional[str]
 
 
-class QuestionSchemaDb(BaseModel):
+class QuestionSchemaDbToBeImplement(BaseModel):
+    triggered_count: Optional[int]
+    status: Optional[str]
+    answer_flow: Optional[FlowSchemaDb]
+
+
+class QuestionSchemaDb(QuestionSchemaDbToBeImplement):
     id: str
     created_at: datetime
     created_by: str
@@ -36,7 +42,6 @@ class QuestionSchemaDb(BaseModel):
     active_at: Optional[datetime]
     expire_at: Optional[datetime]
     is_active: bool
-    answer_flow: Optional[FlowSchemaDb]
 
     class Config:
         schema_extra = {
@@ -78,6 +83,8 @@ class QuestionSchemaDb(BaseModel):
 
 class QuestionSchemaOut(QuestionSchemaDb):
     answer_flow: Optional[FlowSchemaDbOut]
+    triggered_count: Optional[int] = 0
+    status: Status
     class Config:
         schema_extra = {
             "example": {
