@@ -11,3 +11,6 @@ python-multipart==0.0.5
 pydantic==1.7.3
 pytz==2020.5
 stringcase==1.2.0
+pymongo==3.11.2
+starlette==0.13.8
+boto3==1.16.58
