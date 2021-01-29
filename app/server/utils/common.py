@@ -67,6 +67,18 @@ def form_query(fields: list[tuple]) -> dict:
     return query
 
 
+def add_user_pipeline(source_field: str, destination_field: str) -> []:
+    """
+    # Retrieve the vlookup pipeline for portal user
+    :return:
+    """
+    return [{"$lookup": {"from": "portal_user",
+                         "localField": source_field,
+                         "foreignField": "_id",
+                         "as": destination_field}},
+            {"$unwind": f"${destination_field}"}]
+
+
 def to_camel(string: str) -> str:
     return stringcase.camelcase(string)
 
