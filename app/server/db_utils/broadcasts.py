@@ -6,7 +6,8 @@ from bson import ObjectId, Regex
 from app.server.db.collections import (broadcast_template_collection as template_collection,
                                        broadcast_collection as collection)
 from app.server.models.current_user import CurrentUserSchema
-from app.server.models.broadcast import BroadcastTemplateSchemaDb, NewBroadcastTemplate, BroadcastHistoryListSchemaDbOut, \
+from app.server.models.broadcast import BroadcastTemplateSchemaDb, NewBroadcastTemplate, \
+    BroadcastHistoryListSchemaDbOut, \
     BroadcastHistorySchemaDbOut
 from app.server.models.portal_user import PortalUserBasicSchemaOut
 from app.server.utils.common import clean_dict_helper, form_query, add_user_pipeline
@@ -22,7 +23,6 @@ def broadcast_template_helper(broadcast_template) -> dict:
 
 
 def broadcast_history_list_helper(broadcast) -> dict:
-
     results = {
         "created_by": user_basic_information_helper(broadcast["created_by"]),
         "status": 'Completed' if broadcast["total"] == broadcast["sent"] > 0 else (
@@ -38,7 +38,6 @@ def broadcast_history_list_helper(broadcast) -> dict:
 
 
 def user_basic_information_helper(user: dict) -> PortalUserBasicSchemaOut:
-
     results = {
         "username": user["username"],
         "id": str(user["_id"]),
@@ -47,7 +46,6 @@ def user_basic_information_helper(user: dict) -> PortalUserBasicSchemaOut:
 
 
 def broadcast_history_helper(broadcast) -> dict:
-
     results = {
         "created_by": user_basic_information_helper(broadcast["created_by"]),
         "status": 'Completed' if broadcast["total"] == broadcast["sent"] > 0 else (
@@ -133,15 +131,16 @@ async def delete_broadcast_template_db(template_id: str,
     return f"Updated {1 if result.acknowledged else 0} broadcast template."
 
 
-async def validate_broadcast_template(broadcast_template: NewBroadcastTemplate, *, exclude: str) -> (bool, str):
+async def validate_broadcast_template(broadcast_template: NewBroadcastTemplate, *, exclude: str = None) -> (bool, str):
     name = broadcast_template.name
     extra_filter = {"_id": {"$ne": ObjectId(exclude)}} if exclude else {}
 
     if await template_collection.find_one({"is_active": True, "name": broadcast_template.name, **extra_filter}):
         return False, f"Broadcast Template with name {name} exists."
 
-    if await template_collection.find_one({"is_active": True, "flow": broadcast_template.flow, **extra_filter}):
-        return False, f"Broadcast Template with same flow exists, named {name}."
+    if duplicate := await template_collection.find_one({"is_active": True,
+                                                        "flow": broadcast_template.flow, **extra_filter}):
+        return False, f"Broadcast Template with same flow exists, named {duplicate['name']}."
 
     return True, ''
 
@@ -160,7 +159,6 @@ async def get_broadcast_history_list(*, tags: []) -> list[BroadcastHistoryListSc
 
 
 async def get_broadcast_history_one(_id) -> BroadcastHistorySchemaDbOut:
-
     query = {"_id": ObjectId(_id)}
 
     user_pipeline = add_user_pipeline('created_by', 'created_by')

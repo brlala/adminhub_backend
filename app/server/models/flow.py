@@ -38,6 +38,14 @@ class FlowItem(BaseModel):
     data: dict
 
 
+class FlowItemOut(BaseModel):
+    type: str
+    data: dict
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
 class NewFlow(BaseModel):
     topic: str
     type: str

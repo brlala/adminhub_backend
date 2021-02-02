@@ -38,11 +38,23 @@ async def get_broadcast_templates(platforms: Optional[list[str]] = Query(None)
 @router.post("/templates")
 async def add_broadcast_template(broadcast_template: NewBroadcastTemplate,
                                  current_user: CurrentUserSchema = Depends(get_current_active_user)):
+    validity, error_message = await validate_broadcast_template(broadcast_template)
+
+    if not validity:
+        raise HTTPException(status_code=400, detail=error_message)
+
     status = await add_broadcast_template_db(broadcast_template, current_user)
     return {
         "status": status,
         "success": True,
     }
+
+
+@router.get("/templates/{template_id}")
+async def update_broadcast_template(template_id: str,
+                                    current_user: CurrentUserSchema = Depends(get_current_active_user)):
+    broadcast_template = await get_broadcast_template_one(template_id)
+    return {'data': broadcast_template}
 
 
 @router.put("/templates/{template_id}")
@@ -62,7 +74,7 @@ async def update_broadcast_template(template_id: str,
 
 
 @router.delete("/templates/{template_id}")
-async def update_broadcast_template(template_id: str,
+async def delete_broadcast_template(template_id: str,
                                     current_user: CurrentUserSchema = Depends(get_current_active_user)):
     status = await delete_broadcast_template_db(template_id, current_user)
     return {

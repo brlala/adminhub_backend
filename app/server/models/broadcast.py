@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic.main import BaseModel
 
-from app.server.models.flow import FlowItem
+from app.server.models.flow import FlowItem, FlowItemOut
 from app.server.models.portal_user import PortalUserBasicSchemaOut
 from app.server.utils.common import to_camel
 
@@ -55,7 +55,7 @@ class BroadcastHistorySchemaDbOut(BaseModel):
     id: str
     created_at: datetime
     created_by: PortalUserBasicSchemaOut
-    flow: list[FlowItem]
+    flow: list[FlowItemOut]
     send_at: datetime
     status: str
     tags: list[str]

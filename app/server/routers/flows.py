@@ -36,6 +36,12 @@ async def get_flows(field: Optional[str] = None):
     return flows
 
 
+@router.post("/upload")
+async def get_flows(field: Optional[str] = None):
+    return {'url': 'https://placekitten.com/300/150'}
+
+
+
 @router.get("/{flow_id}", response_model=FlowSchemaDbOut)
 async def get_flow(flow_id: str):
     flow = await get_flow_one(flow_id)
