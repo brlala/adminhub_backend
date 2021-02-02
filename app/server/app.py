@@ -1,11 +1,7 @@
 from fastapi import FastAPI
 # from .internal import admin
 # from app.server.db.client import connect_to_mongo, close_mongo_connection, get_database
-<<<<<<< HEAD
-from app.server.routers import items, users, students, login, questions, flows, bot, broadcasts
-=======
-from app.server.routers import items, users, students, login, questions, flows, bot, upload
->>>>>>> master
+from app.server.routers import items, users, students, login, questions, flows, bot, broadcasts, upload
 from app.server.core.env_variables import local_config
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
