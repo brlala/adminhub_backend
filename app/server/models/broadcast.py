@@ -45,6 +45,7 @@ class BroadcastHistoryListSchemaDbOut(BaseModel):
     status: str
     tags: list[str]
     sent: int
+    processed: int
     total: int
     class Config:
         alias_generator = to_camel
@@ -60,6 +61,7 @@ class BroadcastHistorySchemaDbOut(BaseModel):
     status: str
     tags: list[str]
     sent: int
+    processed: int
     total: int
     class Config:
         alias_generator = to_camel

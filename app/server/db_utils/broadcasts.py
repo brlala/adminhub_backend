@@ -31,6 +31,7 @@ def broadcast_history_list_helper(broadcast) -> dict:
         "tags": broadcast["tags"],
         "send_at": broadcast["send_at"],
         "sent": broadcast["sent"],
+        "processed": broadcast["processed"],
         "total": broadcast["total"],
         "id": str(broadcast["_id"]),
     }
@@ -56,6 +57,7 @@ def broadcast_history_helper(broadcast) -> dict:
         "flow": broadcast["flow"]["flow"],
         "send_at": broadcast["send_at"],
         "sent": broadcast["sent"],
+        "processed": broadcast["processed"],
         "total": broadcast["total"],
         "id": str(broadcast["_id"]),
     }
