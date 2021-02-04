@@ -33,9 +33,60 @@ class GetFlowsTable(BaseModel):
     total: int
 
 
+class AttachmentItem(BaseModel):
+    fileName: str
+    url: str
+
+
+class ButtonItem(BaseModel):
+    title: dict
+    type: str
+    content: dict
+
+
+class GenericTemplateItem(BaseModel):
+    fileName: str
+    imageUrl: str
+    title: dict
+    subtitle: dict
+    buttons: list[ButtonItem]
+
+
+class AttachmentItemComponent(BaseModel):  # include file, video, image component
+    attachments: Optional[list[AttachmentItem]]
+
+
+class GenericTemplateComponent(BaseModel):  # include file, video, image component
+    elements: Optional[list[GenericTemplateItem]]
+
+
+class TextComponent(BaseModel):  # include file, video, image component
+    text: Optional[dict]
+
+
+class FlowComponent(BaseModel):  # include file, video, image component
+    flowId: Optional[str]
+    params: Optional[list[str]]
+
+
+class ButtonTemplateComponent(BaseModel):  # include file, video, image component
+    text: Optional[dict]
+    buttons: Optional[list[ButtonItem]]
+
+
+class FlowComponents(AttachmentItemComponent, GenericTemplateComponent, TextComponent, FlowComponent,
+                     ButtonTemplateComponent):
+    pass
+
+
 class FlowItem(BaseModel):
     type: str
-    data: dict
+    data: FlowComponents
+
+
+class FlowItemCreateIn(BaseModel):
+    name: str
+    flow: list[FlowItem]
 
 
 class NewFlow(BaseModel):
