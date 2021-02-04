@@ -8,7 +8,7 @@ from app.server.core.env_variables import local_config
 
 def make_timezone_aware(dt: Union[datetime, date]):
     midnight = dt
-    if isinstance(dt, date):
+    if type(dt) is date:
         midnight = datetime.combine(dt, time.min)
     singapore = timezone(local_config.TIMEZONE)
     return singapore.localize(midnight)
