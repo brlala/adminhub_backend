@@ -5,7 +5,7 @@ from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
 from ..db_utils.flows import get_flow_one, get_flows_filtered_field_list, get_flows_and_count_db
-from ..models.flow import FlowSchemaDbOut, GetFlowsTable
+from ..models.flow import FlowSchemaDbOut, GetFlowsTable, FlowItemCreateIn
 
 router = APIRouter(
     tags=["flows"],
@@ -60,3 +60,10 @@ async def get_flows(field: Optional[str] = None):
 async def get_flow(flow_id: str):
     flow = await get_flow_one(flow_id)
     return flow
+
+
+@router.post("/")
+async def create_flow(flows_created: FlowItemCreateIn):
+    print(flows_created.name)
+    print(flows_created.flow)
+    return flows_created

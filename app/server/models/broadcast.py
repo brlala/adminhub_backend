@@ -4,7 +4,6 @@ from typing import Optional
 from pydantic import Field
 from pydantic.main import BaseModel
 
-from app.server.models.flow import FlowItem, FlowItemOut, NewFlow
 from app.server.models.portal_user import PortalUserBasicSchemaOut
 from app.server.utils.common import to_camel
 
