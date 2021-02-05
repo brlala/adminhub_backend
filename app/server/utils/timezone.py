@@ -16,3 +16,8 @@ def make_timezone_aware(dt: Union[datetime, date]):
 
 def get_local_datetime_now():
     return make_timezone_aware(datetime.now())
+
+
+def get_local_now():
+    singapore = timezone(local_config.TIMEZONE)
+    return singapore.localize(datetime.now())

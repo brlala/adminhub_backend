@@ -33,6 +33,14 @@ class GetFlowsTable(BaseModel):
     total: int
 
 
+class FlowText(BaseModel):
+    EN: Optional[str]
+
+
+class FlowData(BaseModel):
+    text: Optional[FlowText]
+
+
 class AttachmentItem(BaseModel):
     fileName: str
     url: str

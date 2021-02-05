@@ -52,3 +52,14 @@ class PortalUserSchema(BaseModel):
     #     json_encoders = {
     #         ObjectId: str
     #     }
+
+
+class PortalUserBasicSchemaOut(BaseModel):
+    id: str
+    username: str
+    avatar: Optional[str]
+    class Config:
+        arbitrary_types_allowed = True
+        json_encoders = {
+            ObjectId: str
+        }
