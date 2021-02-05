@@ -33,9 +33,17 @@ class GetFlowsTable(BaseModel):
     total: int
 
 
+class FlowText(BaseModel):
+    EN: Optional[str]
+
+
+class FlowData(BaseModel):
+    text: Optional[FlowText]
+
+
 class FlowItem(BaseModel):
     type: str
-    data: dict
+    data: FlowData
 
 
 class FlowItemOut(BaseModel):

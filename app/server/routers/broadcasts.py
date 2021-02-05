@@ -5,8 +5,9 @@ from pydantic import BaseModel
 
 from ..db_utils.broadcasts import (get_broadcast_templates_list, get_broadcast_template_one, add_broadcast_template_db,
                                    validate_broadcast_template, update_broadcast_template_db,
-                                   delete_broadcast_template_db, get_broadcast_history_list, get_broadcast_history_one)
-from ..models.broadcast import BroadcastTemplateSchemaDbOut, NewBroadcastTemplate
+                                   delete_broadcast_template_db, get_broadcast_history_list, get_broadcast_history_one,
+                                   add_broadcast_db)
+from ..models.broadcast import BroadcastTemplateSchemaDbOut, NewBroadcastTemplate, NewBroadcast
 from app.server.models.current_user import CurrentUserSchema
 from ..utils.security import get_current_active_user
 
@@ -29,9 +30,10 @@ class CurrentUserParams(BaseModel):
 
 
 @router.get("/templates")
-async def get_broadcast_templates(platforms: Optional[list[str]] = Query(None)
+async def get_broadcast_templates(flow: Optional[list[str]] = Query(None),
+                                  intersect: Optional[bool] = Query(None)
                                   ):
-    broadcast_templates = await get_broadcast_templates_list(platforms=platforms)
+    broadcast_templates = await get_broadcast_templates_list(flow=flow, intersect=intersect)
     return {'data': broadcast_templates}
 
 
@@ -85,8 +87,10 @@ async def delete_broadcast_template(template_id: str,
 
 @router.get("/history")
 async def get_broadcast_histories(tags: Optional[list[str]] = Query(None),
+                                  intersect: Optional[bool] = Query(None),
+                                  status: Optional[str] = Query(None),
                                   current_user: CurrentUserSchema = Depends(get_current_active_user)):
-    broadcast_history = await get_broadcast_history_list(tags=tags)
+    broadcast_history = await get_broadcast_history_list(tags=tags, intersect=intersect, status=status)
     return {'data': broadcast_history}
 
 
@@ -95,5 +99,21 @@ async def get_broadcast_history(broadcast_id: str,
                                 current_user: CurrentUserSchema = Depends(get_current_active_user)):
     broadcast = await get_broadcast_history_one(broadcast_id)
     return {'data': broadcast}
+
+
+@router.get("/user-tags")
+async def get_user_tags(current_user: CurrentUserSchema = Depends(get_current_active_user)):
+    return {'data': ['Pandai', 'BBL', 'GELM']}
+
+
+@router.post("/send")
+async def get_user_tags(broadcast: NewBroadcast,
+                        current_user: CurrentUserSchema = Depends(get_current_active_user)):
+
+    status = await add_broadcast_db(broadcast, current_user)
+    return {
+        "status": status,
+        "success": True,
+    }
 
 

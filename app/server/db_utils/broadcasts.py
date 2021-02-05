@@ -1,17 +1,18 @@
+import re
 from datetime import datetime
 from re import escape
 
 from bson import ObjectId, Regex
 
 from app.server.db.collections import (broadcast_template_collection as template_collection,
-                                       broadcast_collection as collection)
+                                       broadcast_collection as collection, flow_collection)
 from app.server.models.current_user import CurrentUserSchema
 from app.server.models.broadcast import BroadcastTemplateSchemaDb, NewBroadcastTemplate, \
     BroadcastHistoryListSchemaDbOut, \
-    BroadcastHistorySchemaDbOut
+    BroadcastHistorySchemaDbOut, NewBroadcast, FlowComponentIn, FlowButtonsIn, BroadcastTemplateSchemaDbOut
 from app.server.models.portal_user import PortalUserBasicSchemaOut
-from app.server.utils.common import clean_dict_helper, form_query, add_user_pipeline
-from app.server.utils.timezone import get_local_datetime_now
+from app.server.utils.common import clean_dict_helper, form_query, add_user_pipeline, to_camel
+from app.server.utils.timezone import get_local_datetime_now, get_local_now
 
 
 def broadcast_template_helper(broadcast_template) -> dict:
@@ -25,10 +26,11 @@ def broadcast_template_helper(broadcast_template) -> dict:
 def broadcast_history_list_helper(broadcast) -> dict:
     results = {
         "created_by": user_basic_information_helper(broadcast["created_by"]),
-        "status": 'Completed' if broadcast["total"] == broadcast["sent"] > 0 else (
-            'Sending' if broadcast["total"] > broadcast["processed"] >= broadcast["sent"] > 0 else (
-                'Scheduled' if broadcast["processed"] == broadcast["sent"] == 0 else "Failed")),
+        "status": 'Completed' if broadcast["total"] == broadcast["processed"] > 0 else (
+            'Sending' if broadcast["total"] > broadcast["processed"] >= broadcast["sent"] > 0 else 'Scheduled'),
         "tags": broadcast["tags"],
+        "exclude": broadcast["exclude"],
+        "send_to_all": broadcast["send_to_all"],
         "send_at": broadcast["send_at"],
         "sent": broadcast["sent"],
         "processed": broadcast["processed"],
@@ -46,15 +48,23 @@ def user_basic_information_helper(user: dict) -> PortalUserBasicSchemaOut:
     return clean_dict_helper(results)
 
 
+def format_flow_out(flow):
+    for item in flow:
+        item['type'] = to_camel(item['type'])
+    return flow
+
+
 def broadcast_history_helper(broadcast) -> dict:
+    print(format_flow_out(broadcast["flow"]["flow"]))
     results = {
         "created_by": user_basic_information_helper(broadcast["created_by"]),
-        "status": 'Completed' if broadcast["total"] == broadcast["sent"] > 0 else (
-            'Sending' if broadcast["total"] > broadcast["processed"] >= broadcast["sent"] > 0 else (
-                'Scheduled' if broadcast["processed"] == broadcast["sent"] == 0 else "Failed")),
+        "status": 'Completed' if broadcast["total"] == broadcast["processed"] > 0 else (
+            'Sending' if broadcast["total"] > broadcast["processed"] >= broadcast["sent"] > 0 else 'Scheduled'),
         "tags": broadcast["tags"],
+        "exclude": broadcast["exclude"],
+        "send_to_all": broadcast["send_to_all"],
         "created_at": str(broadcast["created_at"]),
-        "flow": broadcast["flow"]["flow"],
+        "flow": format_flow_out(broadcast["flow"]["flow"]),
         "send_at": broadcast["send_at"],
         "sent": broadcast["sent"],
         "processed": broadcast["processed"],
@@ -70,14 +80,15 @@ async def get_broadcast_template_one(_id: str) -> BroadcastTemplateSchemaDb:
     return BroadcastTemplateSchemaDb(**broadcast_template_helper(broadcast_template))
 
 
-async def get_broadcast_templates_list(*, platforms: list[str]) -> list[BroadcastTemplateSchemaDb]:
-    db_key = [("platforms", {'$in': platforms} if platforms else ...),
+async def get_broadcast_templates_list(*, flow: list[str],
+                                       intersect: bool) -> list[BroadcastTemplateSchemaDb]:
+    db_key = [("flow", {'$all' if intersect else '$in': flow} if flow else ...),
               ("is_active", True)]
     query = form_query(db_key)
 
     broadcast_templates = []
     async for broadcast_template in template_collection.find(query):
-        broadcast_templates.append(BroadcastTemplateSchemaDb(**broadcast_template_helper(broadcast_template)))
+        broadcast_templates.append(BroadcastTemplateSchemaDbOut(**broadcast_template_helper(broadcast_template)))
     return broadcast_templates
 
 
@@ -147,15 +158,25 @@ async def validate_broadcast_template(broadcast_template: NewBroadcastTemplate, 
     return True, ''
 
 
-async def get_broadcast_history_list(*, tags: []) -> list[BroadcastHistoryListSchemaDbOut]:
-    db_key = [("tags", {'$in': tags} if tags else ...),
+async def get_broadcast_history_list(*, tags: [], intersect: bool, status: str) -> list[BroadcastHistoryListSchemaDbOut]:
+    db_key = [("tags", {'$all' if intersect else '$in': tags} if tags else ...),
               ("is_active", True)]
     query = form_query(db_key)
-
     user_pipeline = add_user_pipeline('created_by', 'created_by')
-    pipeline = [{"$match": query}] + user_pipeline
+    pipeline = [{"$match": query}] + user_pipeline + [{"$sort": {"created_at": -1}}]
     broadcast_history = []
     async for broadcast in collection.aggregate(pipeline):
+        if status == 'completed':
+            if broadcast["total"] != broadcast["processed"]:
+                continue
+        elif status == 'sending':
+            if (broadcast["total"] == broadcast["processed"]) or broadcast["processed"] == 0:
+                continue
+        elif status == 'scheduled':
+            if broadcast["processed"] > 0:
+                continue
+        elif status == 'failed':
+            continue
         broadcast_history.append(BroadcastHistoryListSchemaDbOut(**broadcast_history_list_helper(broadcast)))
     return broadcast_history
 
@@ -166,4 +187,95 @@ async def get_broadcast_history_one(_id) -> BroadcastHistorySchemaDbOut:
     user_pipeline = add_user_pipeline('created_by', 'created_by')
     pipeline = [{"$match": query}] + user_pipeline
     broadcast = await collection.aggregate(pipeline).next()
+    print(broadcast)
     return BroadcastHistorySchemaDbOut(**broadcast_history_helper(broadcast))
+
+
+async def add_broadcast_db(broadcast: NewBroadcast, current_user: CurrentUserSchema) -> str:
+
+    print(get_local_now())
+    doc = {
+        "updated_at": get_local_now(),
+        "created_at": get_local_now(),
+        "updated_by": ObjectId(current_user.userId),
+        "created_by": ObjectId(current_user.userId),
+        "is_active": True,
+        "platforms": broadcast.platforms,
+        "flow": flatten_flows(broadcast.flow),
+        "type": "broadcast"
+    }
+
+    flow = await flow_collection.insert_one(doc)
+
+    doc = {
+        "updated_at": get_local_now(),
+        "created_at": get_local_now(),
+        "updated_by": ObjectId(current_user.userId),
+        "created_by": ObjectId(current_user.userId),
+        "is_active": True,
+        "platforms": broadcast.platforms,
+        "flow_id": flow.inserted_id,
+        "flow": await flow_collection.find_one(flow.inserted_id),
+        "tags": broadcast.tags,
+        "exclude": broadcast.exclude,
+        "send_to_all": broadcast.sendToAll,
+        "send_at": get_local_now(),
+        "scheduled": False,
+        "processed": 8,
+        "sent": 6,
+        "total": 10
+    }
+
+    result = await collection.insert_one(doc)
+    return f"Added {1 if result.acknowledged else 0} broadcast template."
+
+
+def camel_to_snake(name):
+    name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
+
+
+def flatten_flows(flow: list[FlowComponentIn]) -> list:
+    res = []
+
+    def flatten_button(buttons: list[FlowButtonsIn]) -> list:
+        button_list = []
+        for button in buttons:
+            button_dict = {}
+            if button_type := button.type:
+                button_dict['type'] = button_type
+            if button_title := button.title:
+                button_dict['title'] = dict(button_title)
+            if button_url := button.url:
+                button_dict['url'] = button_url
+            if button_flow_id := button.flow_id:
+                button_dict['flow_id'] = ObjectId(button_flow_id)
+            button_list.append(button_dict)
+        return button_list
+
+    for component in flow:
+        data = {}
+        if text := component.data.text:
+            data['text'] = dict(text)
+        if title := component.data.title:
+            data['title'] = dict(title)
+        if url := component.data.url:
+            data['url'] = url
+        if buttons := component.data.buttons:
+            data['buttons'] = flatten_button(buttons)
+        if elements := component.data.elements:
+            data['elements'] = []
+            for element in elements:
+                element_dict = {}
+                if title := element.title:
+                    element_dict['title'] = dict(title)
+                if subtitle := element.subtitle:
+                    element_dict['subtitle'] = dict(subtitle)
+                if image_url := element.image_url:
+                    element_dict['image_url'] = image_url
+                if buttons := element.buttons:
+                    element_dict['buttons'] = flatten_button(buttons)
+                data['elements'].append(element_dict)
+        res.append({"type": camel_to_snake(component.type), "data": data})
+    print(res)
+    return res
