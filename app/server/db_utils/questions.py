@@ -7,7 +7,7 @@ from bson import Regex, ObjectId
 
 from app.server.db.collections import flow_collection
 from app.server.db.collections import question_collection as collection
-from app.server.db_utils.flows import add_flows_to_db
+from app.server.db_utils.flows import add_flows_to_db_from_question
 from app.server.models.current_user import CurrentUserSchema
 from app.server.models.flow import NewFlow
 from app.server.models.question import QuestionSchemaDb, QuestionIn
@@ -113,7 +113,7 @@ async def process_question(question: QuestionIn, current_user: CurrentUserSchema
         else:  # create unnamed response
             flow_doc = [{"type": "message", "data": {"text": {question.language: question.text_response}}}]
             flow = NewFlow(**{"topic": question.topic, "type": "storyboard", "flow_items": flow_doc})
-            flow_id = await add_flows_to_db(flow, current_user)
+            flow_id = await add_flows_to_db_from_question(flow, current_user)
     else:  # question.response_type == 'flow'
         flow_id = question.flow_response
     doc = {

@@ -1,11 +1,14 @@
-from datetime import datetime, date
+from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 from pydantic import BaseModel
 
-from ..db_utils.flows import get_flow_one, get_flows_filtered_field_list, get_flows_and_count_db
+from ..db_utils.flows import get_flow_one, get_flows_filtered_field_list, get_flows_and_count_db, \
+    add_flows_to_db_from_flow
+from ..models.current_user import CurrentUserSchema
 from ..models.flow import FlowSchemaDbOut, GetFlowsTable, FlowItemCreateIn
+from ..utils.security import get_current_active_user
 
 router = APIRouter(
     tags=["flows"],
@@ -55,7 +58,6 @@ async def get_flows(field: Optional[str] = None):
     return {'url': 'https://placekitten.com/300/150'}
 
 
-
 @router.get("/{flow_id}", response_model=FlowSchemaDbOut)
 async def get_flow(flow_id: str):
     flow = await get_flow_one(flow_id)
@@ -63,7 +65,13 @@ async def get_flow(flow_id: str):
 
 
 @router.post("/")
-async def create_flow(flows_created: FlowItemCreateIn):
-    print(flows_created.name)
-    print(flows_created.flow)
-    return flows_created
+async def create_flow(flows_created: FlowItemCreateIn,
+                      # current_user: CurrentUserSchema = Depends(get_current_active_user)
+                      ):
+    # print(flows_created.dict(exclude_none=True))
+    # print(flows_created)
+    await add_flows_to_db_from_flow(flows_created)
+    # for f in flows_created.flow:
+    #     print(f)
+    return flows_created.dict(exclude_none=True)
+

@@ -6,7 +6,7 @@ from bson import ObjectId, Regex
 
 from app.server.db.collections import flow_collection as collection
 from app.server.models.current_user import CurrentUserSchema
-from app.server.models.flow import FlowSchemaDb, NewFlow
+from app.server.models.flow import FlowSchemaDb, NewFlow, FlowItemCreateIn, FlowItem, FlowTypeEnum
 from app.server.utils.common import clean_dict_helper, form_query
 from app.server.utils.timezone import get_local_datetime_now, make_timezone_aware
 
@@ -42,9 +42,6 @@ async def get_flows_and_count_db(*, current_page: int, page_size: int, sorter: s
     flows = await get_flows_db(current_page=current_page, page_size=page_size, sorter=sorter, query=query)
     total = await get_flows_count_db(query=query)
     return flows, total
-
-
-
 
 
 async def get_flows_db(*, current_page: int, page_size: int, sorter: str = None, query: dict) -> list[FlowSchemaDb]:
@@ -89,7 +86,13 @@ def get_flows_cursor(field=None):
     return query, projection
 
 
-async def add_flows_to_db(flow: NewFlow, current_user: CurrentUserSchema):
+async def add_flows_to_db_from_question(flow: NewFlow, current_user: CurrentUserSchema):
+    """
+    From question page, #TODO merge with the one from flow
+    :param flow:
+    :param current_user:
+    :return:
+    """
     doc = {
         "updated_at": get_local_datetime_now(),
         "topic": flow.topic,
@@ -102,3 +105,48 @@ async def add_flows_to_db(flow: NewFlow, current_user: CurrentUserSchema):
     }
     result = await collection.insert_one(doc)
     return result.inserted_id
+
+
+async def add_flows_to_db_from_flow(flows_created: FlowItemCreateIn
+                                    # , current_user: CurrentUserSchema
+                                    ):
+    """
+    From Flow Page,
+    :param flow:
+    :param current_user:
+    :return:
+    """
+    for f in flows_created.flow:
+        format_flow_to_database_format(f)
+    doc = {
+        "updated_at": get_local_datetime_now(),
+        "created_at": get_local_datetime_now(),
+        "updated_by": "ObjectId(current_user.userId)",
+        # "updated_by": ObjectId(current_user.userId),
+        # "type": flow.type,
+        "is_active": True,
+        "created_by": 'ObjectId(current_user.userId),',
+        # "created_by": ObjectId(current_user.userId),
+        # "flow": flow.flow_items
+    }
+    result = await collection.insert_one(doc)
+    return result.inserted_id
+
+
+def format_flow_to_database_format(flow: FlowItem):
+    print(1)
+    if flow.type == FlowTypeEnum.GENERIC_TEMPLATE:
+        flow.type = str(flow.type)
+        print(flow.dict(exclude_none=True))
+    elif flow.type == FlowTypeEnum.TEXT:
+        pass
+    elif flow.type == FlowTypeEnum.IMAGE:
+        pass
+    elif flow.type == FlowTypeEnum.FILE:
+        pass
+    elif flow.type == FlowTypeEnum.BUTTON_TEMPLATE:
+        pass
+    elif flow.type == FlowTypeEnum.FLOW:
+        pass
+    elif flow.type == FlowTypeEnum.MESSAGE:
+        pass
