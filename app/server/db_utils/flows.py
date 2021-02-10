@@ -146,13 +146,16 @@ def convert_flow_buttons_to_object_id(flow: FlowItem):
             for b in elem.buttons:
                 if isinstance(b.payload, QuickReplyPayload):
                     b.payload.flow_id = ObjectId(b.payload.flow_id)
+
+    # flow
+    if flow.data.flow_id:
+        flow.data.flow_id = ObjectId(flow.data.flow_id)
     return flow.dict(exclude_none=True)
 
 
 async def remove_flow_db(flow_ids: list[str], current_user: CurrentUserSchema) -> str:
     query = {"_id": {"$in": [ObjectId(f) for f in flow_ids]}, "is_active": True}
 
-    # delete questions
     set_query = {
         "updated_at": get_local_datetime_now(),
         "updated_by": ObjectId(current_user.userId),
