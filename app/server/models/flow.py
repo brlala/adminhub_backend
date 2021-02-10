@@ -137,7 +137,7 @@ class FlowItem(BaseModel):
 
 
 class FlowItemCreateIn(BaseModel):
-    name: str
+    name: Optional[str]
     flow: list[FlowItem]
 
     class Config:
