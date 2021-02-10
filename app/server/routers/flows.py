@@ -5,9 +5,9 @@ from fastapi import APIRouter, Query, Depends
 from pydantic import BaseModel
 
 from ..db_utils.flows import get_flow_one, get_flows_filtered_field_list, get_flows_and_count_db, \
-    add_flows_to_db_from_flow
+    add_flows_to_db_from_flow, remove_flows_db
 from ..models.current_user import CurrentUserSchema
-from ..models.flow import FlowSchemaDbOut, GetFlowsTable, FlowItemCreateIn
+from ..models.flow import FlowSchemaDbOut, GetFlowsTable, FlowItemCreateIn, DeleteFlows
 from ..utils.security import get_current_active_user
 
 router = APIRouter(
@@ -65,7 +65,8 @@ async def get_flow(flow_id: str):
 
 
 @router.post("/")
-async def create_flow(flows_created: FlowItemCreateIn, current_user: CurrentUserSchema = Depends(get_current_active_user)):
+async def create_flow(flows_created: FlowItemCreateIn,
+                      current_user: CurrentUserSchema = Depends(get_current_active_user)):
     status = await add_flows_to_db_from_flow(flows_created, current_user)
     result = {
         "status": status,
@@ -74,13 +75,9 @@ async def create_flow(flows_created: FlowItemCreateIn, current_user: CurrentUser
     return result
 
 
-@router.post("/")
-async def create_flow(flows_created: FlowItemCreateIn,
-                      # current_user: CurrentUserSchema = Depends(get_current_active_user)
-                      ):
-    status = await add_flows_to_db_from_flow(flows_created,
-                                             # current_user
-                                             )
+@router.delete("/")
+async def delete_flow(flows: DeleteFlows, current_user: CurrentUserSchema = Depends(get_current_active_user)):
+    status = await remove_flows_db(flows.key, current_user)
     result = {
         "status": status,
         "success": True,
