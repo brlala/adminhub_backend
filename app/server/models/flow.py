@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Optional, Union
 
 import stringcase
 from pydantic import Field
@@ -52,19 +52,24 @@ class AttachmentItem(BaseModel):
 class ButtonTypeEnum(str, Enum):
     url = 'web_url'
     flow = 'flow'
+    postback = 'postback'
+
+
+class QuickReplyPayload(BaseModel):
+    flow_id: Optional[str] = Field(alias='flowId')
+    params: Optional[list[str]]
+
+
+class QuickReplyItem(BaseModel):
+    text: dict
+    payload: Union[QuickReplyPayload, str]
 
 
 class ButtonItem(BaseModel):
     title: dict
     type: ButtonTypeEnum
-    content: Optional[dict]
+    payload: Optional[Union[QuickReplyPayload, str]]
     url: Optional[str]
-
-
-class QuickReplyItem(BaseModel):
-    text: dict
-    params: Optional[list[str]]
-    payload: str = Field(alias='flowId')
 
 
 class GenericTemplateItem(BaseModel):
@@ -98,6 +103,7 @@ class FlowComponent(BaseModel):  # include file, video, image component
 
 class ButtonTemplateComponent(BaseModel):  # include file, video, image component
     text: Optional[dict]
+    title: Optional[dict]
     buttons: Optional[list[ButtonItem]]
 
 
@@ -108,18 +114,20 @@ class FlowComponents(AttachmentItemComponent, GenericTemplateComponent, TextComp
 
 class FlowTypeEnum(str, Enum):
     GENERIC_TEMPLATE = 'genericTemplate'
-    TEXT = 'text'
     IMAGE = 'imageAttachment'
     FILE = 'fileAttachment'
     BUTTON_TEMPLATE = 'buttonTemplate'
     FLOW = 'flow'
     MESSAGE = 'message'
+    VIDEO = 'videoAttachment'
 
     def __str__(self):
         if self.value == self.IMAGE:
             return 'images'
         elif self.value == self.FILE:
             return 'files'
+        elif self.value == self.VIDEO:
+            return 'videos'
         return stringcase.snakecase(self.value)
 
 

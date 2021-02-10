@@ -1,14 +1,12 @@
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Query, Depends
+from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
 from ..db_utils.flows import get_flow_one, get_flows_filtered_field_list, get_flows_and_count_db, \
     add_flows_to_db_from_flow
-from ..models.current_user import CurrentUserSchema
 from ..models.flow import FlowSchemaDbOut, GetFlowsTable, FlowItemCreateIn
-from ..utils.security import get_current_active_user
 
 router = APIRouter(
     tags=["flows"],
@@ -68,10 +66,11 @@ async def get_flow(flow_id: str):
 async def create_flow(flows_created: FlowItemCreateIn,
                       # current_user: CurrentUserSchema = Depends(get_current_active_user)
                       ):
-    # print(flows_created.dict(exclude_none=True))
-    # print(flows_created)
-    await add_flows_to_db_from_flow(flows_created)
-    # for f in flows_created.flow:
-    #     print(f)
-    return flows_created.dict(exclude_none=True)
-
+    status = await add_flows_to_db_from_flow(flows_created,
+                                             # current_user
+                                             )
+    result = {
+        "status": status,
+        "success": True,
+    }
+    return result
