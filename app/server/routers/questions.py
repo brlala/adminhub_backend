@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Query, Depends
@@ -43,7 +43,8 @@ async def get_questions(topic: Optional[str] = Query(None),
                         language: str = 'EN'):
     questions, total = await get_questions_and_count_db(current_page=current_page, page_size=page_size,
                                                         sorter=sort_by, topic=topic,
-                                                        question_text=question_text, language=language, updated_at=updated_at,
+                                                        question_text=question_text, language=language,
+                                                        updated_at=updated_at,
                                                         triggered_counts=triggered_counts)
 
     for q in questions:

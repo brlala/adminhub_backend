@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Optional, Union
 
 import stringcase
 from pydantic import Field
@@ -52,19 +52,24 @@ class AttachmentItem(BaseModel):
 class ButtonTypeEnum(str, Enum):
     url = 'web_url'
     flow = 'flow'
+    postback = 'postback'
+
+
+class QuickReplyPayload(BaseModel):
+    flow_id: Optional[str] = Field(alias='flowId')
+    params: Optional[list[str]]
+
+
+class QuickReplyItem(BaseModel):
+    text: dict
+    payload: Union[QuickReplyPayload, str]
 
 
 class ButtonItem(BaseModel):
     title: dict
     type: ButtonTypeEnum
-    content: Optional[dict]
+    payload: Optional[Union[QuickReplyPayload, str]]
     url: Optional[str]
-
-
-class QuickReplyItem(BaseModel):
-    text: dict
-    params: Optional[list[str]]
-    payload: str = Field(alias='flowId')
 
 
 class GenericTemplateItem(BaseModel):
@@ -98,6 +103,7 @@ class FlowComponent(BaseModel):  # include file, video, image component
 
 class ButtonTemplateComponent(BaseModel):  # include file, video, image component
     text: Optional[dict]
+    title: Optional[dict]
     buttons: Optional[list[ButtonItem]]
 
 
@@ -108,18 +114,20 @@ class FlowComponents(AttachmentItemComponent, GenericTemplateComponent, TextComp
 
 class FlowTypeEnum(str, Enum):
     GENERIC_TEMPLATE = 'genericTemplate'
-    TEXT = 'text'
     IMAGE = 'imageAttachment'
     FILE = 'fileAttachment'
     BUTTON_TEMPLATE = 'buttonTemplate'
     FLOW = 'flow'
     MESSAGE = 'message'
+    VIDEO = 'videoAttachment'
 
     def __str__(self):
         if self.value == self.IMAGE:
             return 'images'
         elif self.value == self.FILE:
             return 'files'
+        elif self.value == self.VIDEO:
+            return 'videos'
         return stringcase.snakecase(self.value)
 
 
@@ -132,8 +140,322 @@ class FlowItemCreateIn(BaseModel):
     name: str
     flow: list[FlowItem]
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "name": "new",
+                "flow": [
+                    {
+                        "type": "genericTemplate",
+                        "data": {
+                            "elements": [
+                                {
+                                    "fileName": "test.png",
+                                    "imageUrl": "https://pandai-admin-portal.s3-ap-southeast-1.amazonaws.com/portal/flows/%E2%80%94Pngtree%E2%80%94futuristic%20circuit%20board%2Cillustration%20high%20computer_1071790.png",
+                                    "title": {
+                                        "EN": ""
+                                    },
+                                    "subtitle": {
+                                        "EN": ""
+                                    },
+                                    "buttons": [
+                                        {
+                                            "title": {
+                                                "EN": "button text1"
+                                            },
+                                            "type": "web_url",
+                                            "url": "www.apple.com"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "buttons": [
+                                        {
+                                            "payload": {
+                                                "flow_id": "5f6c2e46e3fbc4968da41d88",
+                                                "params": [
+                                                    "Bunny"
+                                                ]
+                                            },
+                                            "title": {
+                                                "EN": "Select"
+                                            },
+                                            "type": "postback"
+                                        }
+                                    ],
+                                    "fileName": "",
+                                    "imageUrl": "https://gelm2dev.oss-ap-southeast-3.aliyuncs.com/portal/flows/flow-attachment-1600888929-557.png",
+                                    "subtitle": {
+                                        "EN": "",
+                                        "ZH": ""
+                                    },
+                                    "title": {
+                                        "EN": "Bunny Greeting Card",
+                                        "ZH": ""
+                                    }
+                                }
+                            ],
+                            "quickReplies": [
+                                {
+                                    "payload": {
+                                        "flowId": "5f97a0833c137c45a8f162c2",
+                                        "params": [
+
+                                        ]
+                                    },
+                                    "text": {
+                                        "EN": "IL PBEAR (U186)"
+                                    }
+                                },
+                                {
+                                    "payload": "Continue",
+                                    "text": {
+                                        "EN": "IL PBEAR (U186)"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "imageAttachment",
+                        "data": {
+                            "attachments": [
+                                {
+                                    "fileName": "test.pdf",
+                                    "url": "https://pandai-admin-portal.s3-ap-southeast-1.amazonaws.com/portal/flows/If%20You%20Suspect%20That%20You%20Are%20Infected%20With%20Covid-19%20%28210124TEH%29%20%281%29.pdf"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "fileAttachment",
+                        "data": {
+                            "attachments": [
+                                {
+                                    "fileName": "test.pdf",
+                                    "url": "https://pandai-admin-portal.s3-ap-southeast-1.amazonaws.com/portal/flows/If%20You%20Suspect%20That%20You%20Are%20Infected%20With%20Covid-19%20%28210124TEH%29%20%281%29.pdf"
+                                }
+                            ]
+                        }
+                    },
+
+                    {
+                        "type": "videoAttachment",
+                        "data": {
+                            "attachments": [
+                                {
+                                    "fileName": "test.mp4",
+                                    "url": "https://pandai-admin-portal.s3-ap-southeast-1.amazonaws.com/portal/flows/If%20You%20Suspect%20That%20You%20Are%20Infected%20With%20Covid-19%20%28210124TEH%29%20%281%29.mp4"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "buttonTemplate",
+                        "data": {
+                            "text": {
+                                "EN": "TEST"
+                            },
+                            "buttons": [
+                                {
+                                    "title": {
+                                        "EN": "button text1"
+                                    },
+                                    "type": "web_url",
+                                    "content": {
+                                        "EN": "www.apple.com"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "flow",
+                        "data": {
+                            "flowId": "5e315217a38e6703b4d3f81d",
+                            "params": [
+
+                            ]
+                        }
+                    },
+                    {
+                        "type": "message",
+                        "data": {
+                            "text": {
+                                "EN": "TEST"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+
+class FlowItemEditIn(FlowItemCreateIn):
+    id: str
+    class Config:
+        schema_extra = {
+            "example": {
+                "id": "60235ffcb38bfe49acb97c3a",
+                "name": "new",
+                "flow": [
+                    {
+                        "type": "genericTemplate",
+                        "data": {
+                            "elements": [
+                                {
+                                    "fileName": "test.png",
+                                    "imageUrl": "https://pandai-admin-portal.s3-ap-southeast-1.amazonaws.com/portal/flows/%E2%80%94Pngtree%E2%80%94futuristic%20circuit%20board%2Cillustration%20high%20computer_1071790.png",
+                                    "title": {
+                                        "EN": ""
+                                    },
+                                    "subtitle": {
+                                        "EN": ""
+                                    },
+                                    "buttons": [
+                                        {
+                                            "title": {
+                                                "EN": "button text1"
+                                            },
+                                            "type": "web_url",
+                                            "url": "www.apple.com"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "buttons": [
+                                        {
+                                            "payload": {
+                                                "flow_id": "5f6c2e46e3fbc4968da41d88",
+                                                "params": [
+                                                    "Bunny"
+                                                ]
+                                            },
+                                            "title": {
+                                                "EN": "Select"
+                                            },
+                                            "type": "postback"
+                                        }
+                                    ],
+                                    "fileName": "",
+                                    "imageUrl": "https://gelm2dev.oss-ap-southeast-3.aliyuncs.com/portal/flows/flow-attachment-1600888929-557.png",
+                                    "subtitle": {
+                                        "EN": "",
+                                        "ZH": ""
+                                    },
+                                    "title": {
+                                        "EN": "Bunny Greeting Card",
+                                        "ZH": ""
+                                    }
+                                }
+                            ],
+                            "quickReplies": [
+                                {
+                                    "payload": {
+                                        "flowId": "5f97a0833c137c45a8f162c2",
+                                        "params": [
+
+                                        ]
+                                    },
+                                    "text": {
+                                        "EN": "IL PBEAR (U186)"
+                                    }
+                                },
+                                {
+                                    "payload": "Continue",
+                                    "text": {
+                                        "EN": "IL PBEAR (U186)"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "imageAttachment",
+                        "data": {
+                            "attachments": [
+                                {
+                                    "fileName": "testasdasd.pdf",
+                                    "url": "https://pandai-admin-portal.s3-ap-southeast-1.amazonaws.com/portal/flows/If%20You%20Suspect%20That%20You%20Are%20Infected%20With%20Covid-19%20%28210124TEH%29%20%281%29.pdf"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "fileAttachment",
+                        "data": {
+                            "attachments": [
+                                {
+                                    "fileName": "testassas.pdf",
+                                    "url": "https://pandai-admin-portal.s3-ap-southeast-1.amazonaws.com/portal/flows/If%20You%20Suspect%20That%20You%20Are%20Infected%20With%20Covid-19%20%28210124TEH%29%20%281%29.pdf"
+                                }
+                            ]
+                        }
+                    },
+
+                    {
+                        "type": "videoAttachment",
+                        "data": {
+                            "attachments": [
+                                {
+                                    "fileName": "testasa.mp4",
+                                    "url": "https://pandai-admin-portal.s3-ap-southeast-1.amazonaws.com/portal/flows/If%20You%20Suspect%20That%20You%20Are%20Infected%20With%20Covid-19%20%28210124TEH%29%20%281%29.mp4"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "buttonTemplate",
+                        "data": {
+                            "text": {
+                                "EN": "TEST"
+                            },
+                            "buttons": [
+                                {
+                                    "title": {
+                                        "EN": "button text1"
+                                    },
+                                    "type": "web_url",
+                                    "content": {
+                                        "EN": "www.apple.com"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "flow",
+                        "data": {
+                            "flowId": "5e315217a38e6703b4d3f81d",
+                            "params": [
+
+                            ]
+                        }
+                    },
+                    {
+                        "type": "message",
+                        "data": {
+                            "text": {
+                                "EN": "TEST"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
 
 class NewFlow(BaseModel):
     topic: str
     type: str
     flow_items: list[dict]
+
+
+class DeleteFlows(BaseModel):
+    key: list[str]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "key": ['6023502e837a202bee7d8e3e', '60235061837a202bee7d8e40']
+            }
+        }

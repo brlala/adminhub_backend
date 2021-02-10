@@ -6,8 +6,9 @@ from bson import ObjectId, Regex
 
 from app.server.db.collections import flow_collection as collection
 from app.server.models.current_user import CurrentUserSchema
-from app.server.models.flow import FlowSchemaDb, NewFlow, FlowItemCreateIn, FlowItem, FlowTypeEnum
-from app.server.utils.common import clean_dict_helper, form_query
+from app.server.models.flow import FlowSchemaDb, NewFlow, FlowItemCreateIn, FlowItem, FlowTypeEnum, QuickReplyPayload, \
+    FlowItemEditIn
+from app.server.utils.common import clean_dict_helper, form_query, RequestMethod
 from app.server.utils.timezone import get_local_datetime_now, make_timezone_aware
 
 
@@ -88,10 +89,7 @@ def get_flows_cursor(field=None):
 
 async def add_flows_to_db_from_question(flow: NewFlow, current_user: CurrentUserSchema):
     """
-    From question page, #TODO merge with the one from flow
-    :param flow:
-    :param current_user:
-    :return:
+    From question page, there is a similar method for flow page add_flows_to_db_from_flow
     """
     doc = {
         "updated_at": get_local_datetime_now(),
@@ -107,42 +105,23 @@ async def add_flows_to_db_from_question(flow: NewFlow, current_user: CurrentUser
     return result.inserted_id
 
 
-async def add_flows_to_db_from_flow(flows_created: FlowItemCreateIn
-                                    # , current_user: CurrentUserSchema
-                                    ):
+async def add_flows_to_db_from_flow(flows_created: FlowItemCreateIn, current_user: CurrentUserSchema):
     """
-    From Flow Page,
-    :param flow:
-    :param current_user:
-    :return:
+    From Flow Page, there is a similar method for flow page add_flows_to_db_from_question
     """
-    for f in flows_created.flow:
-        format_flow_to_database_format(f)
-    doc = {
-        "updated_at": get_local_datetime_now(),
-        "created_at": get_local_datetime_now(),
-        "updated_by": "ObjectId(current_user.userId)",
-        # "updated_by": ObjectId(current_user.userId),
-        # "type": flow.type,
-        "is_active": True,
-        "created_by": 'ObjectId(current_user.userId),',
-        # "created_by": ObjectId(current_user.userId),
-        # "flow": flow.flow_items
-    }
+    doc = await process_flow(flows_created, current_user, method=RequestMethod.ADD)
     result = await collection.insert_one(doc)
-    return result.inserted_id
+    return f"Added {1 if result.acknowledged else 0} flow."
 
 
 def format_flow_to_database_format(flow: FlowItem):
-    print(1)
     if flow.type == FlowTypeEnum.GENERIC_TEMPLATE:
-        flow.type = str(flow.type)
-        print(flow.dict(exclude_none=True))
-    elif flow.type == FlowTypeEnum.TEXT:
         pass
     elif flow.type == FlowTypeEnum.IMAGE:
         pass
     elif flow.type == FlowTypeEnum.FILE:
+        pass
+    elif flow.type == FlowTypeEnum.VIDEO:
         pass
     elif flow.type == FlowTypeEnum.BUTTON_TEMPLATE:
         pass
@@ -150,3 +129,60 @@ def format_flow_to_database_format(flow: FlowItem):
         pass
     elif flow.type == FlowTypeEnum.MESSAGE:
         pass
+    flow.type = str(flow.type)
+    return convert_flow_buttons_to_object_id(flow)
+
+
+def convert_flow_buttons_to_object_id(flow: FlowItem):
+    # QR
+    if flow.data.quick_replies:
+        for qr in flow.data.quick_replies:
+            if isinstance(qr.payload, QuickReplyPayload):
+                qr.payload.flow_id = ObjectId(qr.payload.flow_id)
+
+    # buttons
+    if flow.data.elements:
+        for elem in flow.data.elements:
+            for b in elem.buttons:
+                if isinstance(b.payload, QuickReplyPayload):
+                    b.payload.flow_id = ObjectId(b.payload.flow_id)
+    return flow.dict(exclude_none=True)
+
+
+async def remove_flow_db(flow_ids: list[str], current_user: CurrentUserSchema) -> str:
+    query = {"_id": {"$in": [ObjectId(f) for f in flow_ids]}, "is_active": True}
+
+    # delete questions
+    set_query = {
+        "updated_at": get_local_datetime_now(),
+        "updated_by": ObjectId(current_user.userId),
+        "is_active": False
+    }
+    result = await collection.update_many(query, {'$set': set_query})
+
+    return f"Removed {result.modified_count} flows."
+
+
+async def process_flow(flow: FlowItemCreateIn, current_user, *, method: RequestMethod):
+    doc = {
+        "updated_at": get_local_datetime_now(),
+        "created_at": get_local_datetime_now(),
+        "updated_by": ObjectId(current_user.userId),
+        "type": 'storyboard',
+        "is_active": True,
+        "created_by": ObjectId(current_user.userId),
+        "flow": [format_flow_to_database_format(f) for f in flow.flow]
+    }
+
+    if method == RequestMethod.EDIT:
+        keys_to_remove = ["created_at", "created_by"]
+        for key in keys_to_remove:
+            doc.pop(key)
+    return doc
+
+
+async def edit_flow_db(flow: FlowItemEditIn, current_user: CurrentUserSchema):
+    doc = await process_flow(flow, current_user, method=RequestMethod.EDIT)
+    new_values = {"$set": doc}
+    result = await collection.update_one({"_id": ObjectId(flow.id)}, new_values)
+    return f"Updated {result.modified_count} question."
