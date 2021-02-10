@@ -165,6 +165,7 @@ async def remove_flow_db(flow_ids: list[str], current_user: CurrentUserSchema) -
 
 async def process_flow(flow: FlowItemCreateIn, current_user, *, method: RequestMethod):
     doc = {
+        "name": flow.name,
         "updated_at": get_local_datetime_now(),
         "created_at": get_local_datetime_now(),
         "updated_by": ObjectId(current_user.userId),
