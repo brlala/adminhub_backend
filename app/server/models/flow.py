@@ -291,6 +291,159 @@ class FlowItemCreateIn(BaseModel):
         }
 
 
+class FlowItemEditIn(FlowItemCreateIn):
+    id: str
+    class Config:
+        schema_extra = {
+            "example": {
+                "id": "60235ffcb38bfe49acb97c3a",
+                "name": "new",
+                "flow": [
+                    {
+                        "type": "genericTemplate",
+                        "data": {
+                            "elements": [
+                                {
+                                    "fileName": "test.png",
+                                    "imageUrl": "https://pandai-admin-portal.s3-ap-southeast-1.amazonaws.com/portal/flows/%E2%80%94Pngtree%E2%80%94futuristic%20circuit%20board%2Cillustration%20high%20computer_1071790.png",
+                                    "title": {
+                                        "EN": ""
+                                    },
+                                    "subtitle": {
+                                        "EN": ""
+                                    },
+                                    "buttons": [
+                                        {
+                                            "title": {
+                                                "EN": "button text1"
+                                            },
+                                            "type": "web_url",
+                                            "url": "www.apple.com"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "buttons": [
+                                        {
+                                            "payload": {
+                                                "flow_id": "5f6c2e46e3fbc4968da41d88",
+                                                "params": [
+                                                    "Bunny"
+                                                ]
+                                            },
+                                            "title": {
+                                                "EN": "Select"
+                                            },
+                                            "type": "postback"
+                                        }
+                                    ],
+                                    "fileName": "",
+                                    "imageUrl": "https://gelm2dev.oss-ap-southeast-3.aliyuncs.com/portal/flows/flow-attachment-1600888929-557.png",
+                                    "subtitle": {
+                                        "EN": "",
+                                        "ZH": ""
+                                    },
+                                    "title": {
+                                        "EN": "Bunny Greeting Card",
+                                        "ZH": ""
+                                    }
+                                }
+                            ],
+                            "quickReplies": [
+                                {
+                                    "payload": {
+                                        "flowId": "5f97a0833c137c45a8f162c2",
+                                        "params": [
+
+                                        ]
+                                    },
+                                    "text": {
+                                        "EN": "IL PBEAR (U186)"
+                                    }
+                                },
+                                {
+                                    "payload": "Continue",
+                                    "text": {
+                                        "EN": "IL PBEAR (U186)"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "imageAttachment",
+                        "data": {
+                            "attachments": [
+                                {
+                                    "fileName": "testasdasd.pdf",
+                                    "url": "https://pandai-admin-portal.s3-ap-southeast-1.amazonaws.com/portal/flows/If%20You%20Suspect%20That%20You%20Are%20Infected%20With%20Covid-19%20%28210124TEH%29%20%281%29.pdf"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "fileAttachment",
+                        "data": {
+                            "attachments": [
+                                {
+                                    "fileName": "testassas.pdf",
+                                    "url": "https://pandai-admin-portal.s3-ap-southeast-1.amazonaws.com/portal/flows/If%20You%20Suspect%20That%20You%20Are%20Infected%20With%20Covid-19%20%28210124TEH%29%20%281%29.pdf"
+                                }
+                            ]
+                        }
+                    },
+
+                    {
+                        "type": "videoAttachment",
+                        "data": {
+                            "attachments": [
+                                {
+                                    "fileName": "testasa.mp4",
+                                    "url": "https://pandai-admin-portal.s3-ap-southeast-1.amazonaws.com/portal/flows/If%20You%20Suspect%20That%20You%20Are%20Infected%20With%20Covid-19%20%28210124TEH%29%20%281%29.mp4"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "buttonTemplate",
+                        "data": {
+                            "text": {
+                                "EN": "TEST"
+                            },
+                            "buttons": [
+                                {
+                                    "title": {
+                                        "EN": "button text1"
+                                    },
+                                    "type": "web_url",
+                                    "content": {
+                                        "EN": "www.apple.com"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "flow",
+                        "data": {
+                            "flowId": "5e315217a38e6703b4d3f81d",
+                            "params": [
+
+                            ]
+                        }
+                    },
+                    {
+                        "type": "message",
+                        "data": {
+                            "text": {
+                                "EN": "TEST"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
 class NewFlow(BaseModel):
     topic: str
     type: str
