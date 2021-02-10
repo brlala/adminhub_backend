@@ -3,11 +3,13 @@ from typing import Optional
 from fastapi import APIRouter, Query, Depends, HTTPException
 from pydantic import BaseModel
 
+from ..db_utils.bot_user import get_bot_user_tags_db
 from ..db_utils.broadcasts import (get_broadcast_templates_list, get_broadcast_template_one, add_broadcast_template_db,
                                    validate_broadcast_template, update_broadcast_template_db,
                                    delete_broadcast_template_db, get_broadcast_history_list, get_broadcast_history_one,
                                    add_broadcast_db)
-from ..models.broadcast import BroadcastTemplateSchemaDbOut, NewBroadcastTemplate, NewBroadcast
+from ..db_utils.flows import get_flow_one
+from ..models.broadcast import BroadcastTemplateSchemaDbOut, NewBroadcastTemplate, BroadcastIn
 from app.server.models.current_user import CurrentUserSchema
 from ..utils.security import get_current_active_user
 
@@ -94,6 +96,12 @@ async def get_broadcast_histories(tags: Optional[list[str]] = Query(None),
     return {'data': broadcast_history}
 
 
+@router.get("/history/flow/{flow_id}")
+async def get_flow(flow_id: str):
+    flow = await get_flow_one(flow_id)
+    return {'data': flow}
+
+
 @router.get("/history/{broadcast_id}")
 async def get_broadcast_history(broadcast_id: str,
                                 current_user: CurrentUserSchema = Depends(get_current_active_user)):
@@ -103,11 +111,12 @@ async def get_broadcast_history(broadcast_id: str,
 
 @router.get("/user-tags")
 async def get_user_tags(current_user: CurrentUserSchema = Depends(get_current_active_user)):
-    return {'data': ['Pandai', 'BBL', 'GELM']}
+    tags = await get_bot_user_tags_db()
+    return {'data': tags}
 
 
 @router.post("/send")
-async def get_user_tags(broadcast: NewBroadcast,
+async def get_user_tags(broadcast: BroadcastIn,
                         current_user: CurrentUserSchema = Depends(get_current_active_user)):
 
     status = await add_broadcast_db(broadcast, current_user)

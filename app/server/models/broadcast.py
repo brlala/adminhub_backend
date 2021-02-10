@@ -69,12 +69,15 @@ class FlowComponentIn(BaseModel):
     data: FlowDataIn
 
 
-class NewBroadcast(BaseModel):
-    flow: list[FlowComponentIn]
+class BroadcastIn(BaseModel):
+    flow: Optional[list[FlowComponentIn]]
+    flowId: Optional[str]
     tags: list[str]
     exclude: list[str]
-    sendToAll: bool = Field(default_factory=False)
+    sendToAll: Optional[bool] = Field(default_factory=False)
     platforms: Optional[list[str]]
+    scheduled: Optional[bool] = Field(default_factory=False)
+    sendAt: Optional[str]
 
 
 class BroadcastHistoryListSchemaDbOut(BaseModel):
@@ -140,6 +143,7 @@ class BroadcastHistorySchemaDbOut(BaseModel):
     id: str
     created_at: datetime
     created_by: PortalUserBasicSchemaOut
+    flow_id: str
     flow: list[FlowComponentOut]
     send_at: datetime
     status: str
