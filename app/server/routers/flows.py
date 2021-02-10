@@ -53,11 +53,6 @@ async def get_flows(field: Optional[str] = None):
     return flows
 
 
-@router.post("/upload")
-async def get_flows(field: Optional[str] = None):
-    return {'url': 'https://placekitten.com/300/150'}
-
-
 @router.get("/{flow_id}", response_model=FlowSchemaDbOut)
 async def get_flow(flow_id: str):
     flow = await get_flow_one(flow_id)
@@ -65,12 +60,8 @@ async def get_flow(flow_id: str):
 
 
 @router.post("/")
-async def create_flow(flow: FlowItemCreateIn,
-                      # current_user: CurrentUserSchema = Depends(get_current_active_user)
-                      ):
-    status = await add_flows_to_db_from_flow(flow,
-                                             # current_user
-                                             )
+async def create_flow(flow: FlowItemCreateIn, current_user: CurrentUserSchema = Depends(get_current_active_user)):
+    status = await add_flows_to_db_from_flow(flow, current_user)
     result = {
         "status": status,
         "success": True,
@@ -89,12 +80,8 @@ async def delete_flow(flows: DeleteFlows, current_user: CurrentUserSchema = Depe
 
 
 @router.put("/")
-async def edit_flow(flow: FlowItemEditIn,
-                    # current_user: CurrentUserSchema = Depends(get_current_active_user)
-                    ):
-    status = await edit_flow_db(flow,
-                                # current_user
-                                )
+async def edit_flow(flow: FlowItemEditIn, current_user: CurrentUserSchema = Depends(get_current_active_user)):
+    status = await edit_flow_db(flow, current_user)
     return {
         "status": status,
         "success": True,
