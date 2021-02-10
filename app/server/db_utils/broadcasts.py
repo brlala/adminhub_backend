@@ -9,7 +9,7 @@ from app.server.db.collections import (broadcast_template_collection as template
 from app.server.models.current_user import CurrentUserSchema
 from app.server.models.broadcast import BroadcastTemplateSchemaDb, NewBroadcastTemplate, \
     BroadcastHistoryListSchemaDbOut, \
-    BroadcastHistorySchemaDbOut, NewBroadcast, FlowComponentIn, FlowButtonsIn, BroadcastTemplateSchemaDbOut
+    BroadcastHistorySchemaDbOut, FlowComponentIn, FlowButtonsIn, BroadcastTemplateSchemaDbOut, BroadcastIn
 from app.server.models.portal_user import PortalUserBasicSchemaOut
 from app.server.utils.common import clean_dict_helper, form_query, add_user_pipeline, to_camel
 from app.server.utils.timezone import get_local_datetime_now, get_local_now
@@ -64,6 +64,7 @@ def broadcast_history_helper(broadcast) -> dict:
         "exclude": broadcast["exclude"],
         "send_to_all": broadcast["send_to_all"],
         "created_at": str(broadcast["created_at"]),
+        "flow_id": str(broadcast["flow_id"]),
         "flow": format_flow_out(broadcast["flow"]["flow"]),
         "send_at": broadcast["send_at"],
         "sent": broadcast["sent"],
@@ -140,7 +141,7 @@ async def update_broadcast_template_db(template_id: str,
 
 async def delete_broadcast_template_db(template_id: str,
                                        current_user: CurrentUserSchema) -> str:
-    result = await template_collection.delete_one({"_id": ObjectId(template_id)})
+    result = await template_collection.update_one({"_id": ObjectId(template_id)}, {"$set": {"is_active": False}})
     return f"Updated {1 if result.acknowledged else 0} broadcast template."
 
 
@@ -191,38 +192,40 @@ async def get_broadcast_history_one(_id) -> BroadcastHistorySchemaDbOut:
     return BroadcastHistorySchemaDbOut(**broadcast_history_helper(broadcast))
 
 
-async def add_broadcast_db(broadcast: NewBroadcast, current_user: CurrentUserSchema) -> str:
+async def add_broadcast_db(broadcast: BroadcastIn, current_user: CurrentUserSchema) -> str:
+    now = get_local_now()
+    if broadcast.flowId:
+        flow_id = broadcast.flowId
+    else:
+        doc = {
+                "updated_at": now,
+                "created_at": now,
+                "updated_by": ObjectId(current_user.userId),
+                "created_by": ObjectId(current_user.userId),
+                "is_active": True,
+                "platforms": broadcast.platforms,
+                "flow": broadcast.dict(exclude_none=True, exclude_unset=True)['flow'],
+                "type": "broadcast"
+            }
 
-    print(get_local_now())
+        flow = await flow_collection.insert_one(doc)
+        flow_id = flow.inserted_id
     doc = {
-        "updated_at": get_local_now(),
-        "created_at": get_local_now(),
+        "updated_at": now,
+        "created_at": now,
         "updated_by": ObjectId(current_user.userId),
         "created_by": ObjectId(current_user.userId),
         "is_active": True,
         "platforms": broadcast.platforms,
-        "flow": flatten_flows(broadcast.flow),
-        "type": "broadcast"
-    }
-
-    flow = await flow_collection.insert_one(doc)
-
-    doc = {
-        "updated_at": get_local_now(),
-        "created_at": get_local_now(),
-        "updated_by": ObjectId(current_user.userId),
-        "created_by": ObjectId(current_user.userId),
-        "is_active": True,
-        "platforms": broadcast.platforms,
-        "flow_id": flow.inserted_id,
-        "flow": await flow_collection.find_one(flow.inserted_id),
+        "flow_id": flow_id,
+        "flow": await flow_collection.find_one(ObjectId(flow_id)),
         "tags": broadcast.tags,
         "exclude": broadcast.exclude,
         "send_to_all": broadcast.sendToAll,
-        "send_at": get_local_now(),
-        "scheduled": False,
-        "processed": 8,
-        "sent": 6,
+        "send_at": datetime.strptime(broadcast.sendAt, '%Y-%m-%dT%H:%M:%S.%fZ') if broadcast.sendAt else now,
+        "scheduled": broadcast.scheduled,
+        "processed": 0,
+        "sent": 0,
         "total": 10
     }
 
@@ -233,49 +236,3 @@ async def add_broadcast_db(broadcast: NewBroadcast, current_user: CurrentUserSch
 def camel_to_snake(name):
     name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
-
-
-def flatten_flows(flow: list[FlowComponentIn]) -> list:
-    res = []
-
-    def flatten_button(buttons: list[FlowButtonsIn]) -> list:
-        button_list = []
-        for button in buttons:
-            button_dict = {}
-            if button_type := button.type:
-                button_dict['type'] = button_type
-            if button_title := button.title:
-                button_dict['title'] = dict(button_title)
-            if button_url := button.url:
-                button_dict['url'] = button_url
-            if button_flow_id := button.flow_id:
-                button_dict['flow_id'] = ObjectId(button_flow_id)
-            button_list.append(button_dict)
-        return button_list
-
-    for component in flow:
-        data = {}
-        if text := component.data.text:
-            data['text'] = dict(text)
-        if title := component.data.title:
-            data['title'] = dict(title)
-        if url := component.data.url:
-            data['url'] = url
-        if buttons := component.data.buttons:
-            data['buttons'] = flatten_button(buttons)
-        if elements := component.data.elements:
-            data['elements'] = []
-            for element in elements:
-                element_dict = {}
-                if title := element.title:
-                    element_dict['title'] = dict(title)
-                if subtitle := element.subtitle:
-                    element_dict['subtitle'] = dict(subtitle)
-                if image_url := element.image_url:
-                    element_dict['image_url'] = image_url
-                if buttons := element.buttons:
-                    element_dict['buttons'] = flatten_button(buttons)
-                data['elements'].append(element_dict)
-        res.append({"type": camel_to_snake(component.type), "data": data})
-    print(res)
-    return res
