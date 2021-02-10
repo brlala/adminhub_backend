@@ -165,12 +165,12 @@ async def remove_flow_db(flow_ids: list[str], current_user: CurrentUserSchema) -
 
 async def process_flow(flow: FlowItemCreateIn, current_user, *, method: RequestMethod):
     doc = {
+        "name": flow.name,
         "updated_at": get_local_datetime_now(),
         "created_at": get_local_datetime_now(),
         "updated_by": ObjectId(current_user.userId),
         "type": 'storyboard',
         "is_active": True,
-        "name": flow.name,
         "created_by": ObjectId(current_user.userId),
         "flow": [format_flow_to_database_format(f) for f in flow.flow]
     }
