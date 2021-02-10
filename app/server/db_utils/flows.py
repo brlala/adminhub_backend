@@ -107,22 +107,17 @@ async def add_flows_to_db_from_question(flow: NewFlow, current_user: CurrentUser
     return result.inserted_id
 
 
-async def add_flows_to_db_from_flow(flows_created: FlowItemCreateIn,
-                                    # current_user: CurrentUserSchema
-                                    ):
+async def add_flows_to_db_from_flow(flows_created: FlowItemCreateIn, current_user: CurrentUserSchema):
     """
     From Flow Page,
-    :param flow:
-    :param current_user:
-    :return:
     """
     doc = {
         "updated_at": get_local_datetime_now(),
         "created_at": get_local_datetime_now(),
-        "updated_by": "ObjectId(current_user.userId)",
+        "updated_by": ObjectId(current_user.userId),
         "type": 'storyboard',
         "is_active": True,
-        "created_by": 'ObjectId(current_user.userId)',
+        "created_by": ObjectId(current_user.userId),
         "flow": [format_flow_to_database_format(f) for f in flows_created.flow]
     }
     result = await collection.insert_one(doc)
@@ -146,7 +141,6 @@ def format_flow_to_database_format(flow: FlowItem):
         pass
     flow.type = str(flow.type)
     return convert_flow_buttons_to_object_id(flow)
-    # return flow.dict(exclude_none=True)
 
 
 def convert_flow_buttons_to_object_id(flow: FlowItem):
