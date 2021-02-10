@@ -89,10 +89,7 @@ def get_flows_cursor(field=None):
 
 async def add_flows_to_db_from_question(flow: NewFlow, current_user: CurrentUserSchema):
     """
-    From question page, #TODO merge with the one from flow
-    :param flow:
-    :param current_user:
-    :return:
+    From question page, there is a similar method for flow page add_flows_to_db_from_flow
     """
     doc = {
         "updated_at": get_local_datetime_now(),
@@ -108,16 +105,11 @@ async def add_flows_to_db_from_question(flow: NewFlow, current_user: CurrentUser
     return result.inserted_id
 
 
-async def add_flows_to_db_from_flow(flows_created: FlowItemCreateIn,
-                                    current_user: CurrentUserSchema
-                                    ):
+async def add_flows_to_db_from_flow(flows_created: FlowItemCreateIn, current_user: CurrentUserSchema):
     """
-    From Flow Page,
+    From Flow Page, there is a similar method for flow page add_flows_to_db_from_question
     """
-    doc = await process_flow(flows_created,
-                             current_user,
-                             method=RequestMethod.ADD
-                             )
+    doc = await process_flow(flows_created, current_user, method=RequestMethod.ADD)
     result = await collection.insert_one(doc)
     return f"Added {1 if result.acknowledged else 0} flow."
 
@@ -157,9 +149,7 @@ def convert_flow_buttons_to_object_id(flow: FlowItem):
     return flow.dict(exclude_none=True)
 
 
-async def remove_flow_db(flow_ids: list[str],
-                         current_user: CurrentUserSchema
-                         ) -> str:
+async def remove_flow_db(flow_ids: list[str], current_user: CurrentUserSchema) -> str:
     query = {"_id": {"$in": [ObjectId(f) for f in flow_ids]}, "is_active": True}
 
     # delete questions
@@ -173,10 +163,7 @@ async def remove_flow_db(flow_ids: list[str],
     return f"Removed {result.modified_count} flows."
 
 
-async def process_flow(flow: FlowItemCreateIn,
-                       current_user,
-                       *, method: RequestMethod
-                       ):
+async def process_flow(flow: FlowItemCreateIn, current_user, *, method: RequestMethod):
     doc = {
         "updated_at": get_local_datetime_now(),
         "created_at": get_local_datetime_now(),
@@ -194,12 +181,8 @@ async def process_flow(flow: FlowItemCreateIn,
     return doc
 
 
-async def edit_flow_db(flow: FlowItemEditIn,
-                       current_user: CurrentUserSchema
-                       ):
-    doc = await process_flow(flow,
-                             current_user,
-                             method=RequestMethod.EDIT)
+async def edit_flow_db(flow: FlowItemEditIn, current_user: CurrentUserSchema):
+    doc = await process_flow(flow, current_user, method=RequestMethod.EDIT)
     new_values = {"$set": doc}
     result = await collection.update_one({"_id": ObjectId(flow.id)}, new_values)
     return f"Updated {result.modified_count} question."
