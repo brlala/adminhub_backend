@@ -61,21 +61,21 @@ async def get_flow(flow_id: str):
 
 @router.post("/")
 async def create_flow(flow: FlowItemCreateIn,
-                      # current_user: CurrentUserSchema = Depends(get_current_active_user)
+                      current_user: CurrentUserSchema = Depends(get_current_active_user)
                       ):
-    current_user = CurrentUserSchema(**{
-            "username": "user@pand.ai",
-            "userId": "5efdc63e74f7e093ce73db78",
-            "access": "admin",
-            "permissions": [
-                "create_flow",
-                "read_flow",
-            ],
-            "name": "Teh Li heng ",
-            "email": "liheng@pand.ai",
-            "avatar": "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png",
-            "is_active": True
-        })
+    # current_user = CurrentUserSchema(**{
+    #         "username": "user@pand.ai",
+    #         "userId": "5efdc63e74f7e093ce73db78",
+    #         "access": "admin",
+    #         "permissions": [
+    #             "create_flow",
+    #             "read_flow",
+    #         ],
+    #         "name": "Teh Li heng ",
+    #         "email": "liheng@pand.ai",
+    #         "avatar": "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png",
+    #         "is_active": True
+    #     })
     status = await add_flows_to_db_from_flow(flow, current_user)
     result = {
         "status": status,
