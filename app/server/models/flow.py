@@ -9,33 +9,6 @@ from pydantic.main import BaseModel
 from app.server.utils.common import to_camel
 
 
-class FlowSchemaDb(BaseModel):
-    id: str
-    created_at: datetime
-    created_by: Optional[str]
-    updated_at: datetime
-    updated_by: Optional[str]
-    topic: Optional[str]
-    is_active: bool
-    name: Optional[str]
-    flow: list[dict]
-    type: str
-    platforms: Optional[list[str]]
-    params: Optional[list[str]]
-
-
-class FlowSchemaDbOut(FlowSchemaDb):
-    class Config:
-        alias_generator = to_camel
-        allow_population_by_field_name = True
-
-
-class GetFlowsTable(BaseModel):
-    data: list[FlowSchemaDbOut]
-    success: bool
-    total: int
-
-
 class FlowText(BaseModel):
     EN: Optional[str]
 
@@ -293,6 +266,7 @@ class FlowItemCreateIn(BaseModel):
 
 class FlowItemEditIn(FlowItemCreateIn):
     id: str
+
     class Config:
         schema_extra = {
             "example": {
@@ -443,6 +417,155 @@ class FlowItemEditIn(FlowItemCreateIn):
                 ]
             }
         }
+
+
+# class ButtonItemOut(ButtonItem):
+#     class Config:
+#         alias_generator = to_camel
+#         allow_population_by_field_name = True
+
+
+class QuickReplyPayloadOut(QuickReplyPayload):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class ButtonItemOut(ButtonItem):
+    payload: Optional[Union[QuickReplyPayloadOut, str]]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class AttachmentItemOut(AttachmentItem):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class GenericTemplateItemOut(GenericTemplateItem):
+    buttons: list[ButtonItemOut]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class QuickReplyItemOut(QuickReplyItem):
+    payload: Union[QuickReplyPayloadOut, str]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class QuickReplyComponentOut(QuickReplyComponent):  # include file, video, image component
+    quick_replies: Optional[list[QuickReplyItemOut]] = Field(alias='quickReplies')
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class AttachmentItemComponentOut(AttachmentItemComponent):  # include file, video, image component
+    attachments: Optional[list[AttachmentItemOut]]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class GenericTemplateComponentOut(GenericTemplateComponent):  # include file, video, image component
+    elements: Optional[list[GenericTemplateItemOut]]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class TextComponentOut(TextComponent):  # include file, video, image component
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class FlowComponentOut(FlowComponent):  # include file, video, image component
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class ButtonTemplateComponentOut(ButtonTemplateComponent):  # include file, video, image component
+    buttons: Optional[list[ButtonItemOut]]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class FlowComponentsOut(AttachmentItemComponentOut, GenericTemplateComponentOut, TextComponentOut, FlowComponentOut,
+                        ButtonTemplateComponentOut, QuickReplyComponentOut):
+    pass
+
+
+class FlowTypeEnumOut(str, Enum):
+    GENERIC_TEMPLATE = 'generic_template'
+    IMAGE = 'images'
+    FILE = 'files'
+    BUTTON_TEMPLATE = 'button_template'
+    FLOW = 'flow'
+    MESSAGE = 'message'
+    VIDEO = 'videos'
+
+    def __str__(self):
+        if self.value == self.IMAGE:
+            return 'imageAttachment'
+        elif self.value == self.FILE:
+            return 'fileAttachment'
+        elif self.value == self.VIDEO:
+            return 'videoAttachment'
+        return stringcase.camelcase(self.value)
+
+
+class FlowItemOut(FlowItem):
+    type: FlowTypeEnum
+    data: FlowComponentsOut
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class FlowSchemaDb(BaseModel):
+    id: str
+    created_at: datetime
+    created_by: Optional[str]
+    updated_at: datetime
+    updated_by: Optional[str]
+    topic: Optional[str]
+    is_active: bool
+    name: Optional[str]
+    flow: list[FlowItem]
+    type: str
+    platforms: Optional[list[str]]
+    params: Optional[list[str]]
+
+
+class FlowSchemaDbOut(FlowSchemaDb):
+    flow: list[FlowItemOut]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class GetFlowsTable(BaseModel):
+    data: list[FlowSchemaDbOut]
+    success: bool
+    total: int
+
 
 class NewFlow(BaseModel):
     topic: str
