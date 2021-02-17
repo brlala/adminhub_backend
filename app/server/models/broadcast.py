@@ -36,17 +36,22 @@ class NewBroadcastTemplate(BaseModel):
     name: str
     flow: list[str]
     platforms: Optional[list[str]]
+    is_active: bool = Field(alias='isActive')
 
 
 class FlowTextIn(BaseModel):
     EN: Optional[str]
 
 
+class FlowPayloadIn(BaseModel):
+    flow_id: str = Field(alias='flowId')
+
+
 class FlowButtonsIn(BaseModel):
     title: Optional[FlowTextIn]
     type: Optional[str]
     url: Optional[str]
-    flow_id: Optional[str] = Field(alias='flowId')
+    payload: Optional[FlowPayloadIn]
 
 
 class FlowElementsIn(BaseModel):
@@ -150,9 +155,10 @@ class BroadcastHistorySchemaDbOut(BaseModel):
     tags: list[str]
     exclude: list[str]
     send_to_all: bool
+    total: int
     sent: int
     processed: int
-    total: int
+    failed: Optional[list[str]]
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True

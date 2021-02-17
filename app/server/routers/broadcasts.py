@@ -96,12 +96,6 @@ async def get_broadcast_histories(tags: Optional[list[str]] = Query(None),
     return {'data': broadcast_history}
 
 
-@router.get("/history/flow/{flow_id}")
-async def get_flow(flow_id: str):
-    flow = await get_flow_one(flow_id)
-    return {'data': flow}
-
-
 @router.get("/history/{broadcast_id}")
 async def get_broadcast_history(broadcast_id: str,
                                 current_user: CurrentUserSchema = Depends(get_current_active_user)):

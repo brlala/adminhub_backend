@@ -5,7 +5,7 @@ from re import escape
 from bson import ObjectId, Regex
 
 from app.server.db.collections import (broadcast_template_collection as template_collection,
-                                       broadcast_collection as collection, flow_collection)
+                                       broadcast_collection as collection, flow_collection, bot_user_collection)
 from app.server.models.current_user import CurrentUserSchema
 from app.server.models.broadcast import BroadcastTemplateSchemaDb, NewBroadcastTemplate, \
     BroadcastHistoryListSchemaDbOut, \
@@ -54,23 +54,15 @@ def format_flow_out(flow):
     return flow
 
 
-def broadcast_history_helper(broadcast) -> dict:
-    print(format_flow_out(broadcast["flow"]["flow"]))
+def broadcast_history_helper(broadcast, extra=[]) -> dict:
     results = {
+        **broadcast,
         "created_by": user_basic_information_helper(broadcast["created_by"]),
         "status": 'Completed' if broadcast["total"] == broadcast["processed"] > 0 else (
             'Sending' if broadcast["total"] > broadcast["processed"] >= broadcast["sent"] > 0 else 'Scheduled'),
-        "tags": broadcast["tags"],
-        "exclude": broadcast["exclude"],
-        "send_to_all": broadcast["send_to_all"],
-        "created_at": str(broadcast["created_at"]),
-        "flow_id": str(broadcast["flow_id"]),
         "flow": format_flow_out(broadcast["flow"]["flow"]),
-        "send_at": broadcast["send_at"],
-        "sent": broadcast["sent"],
-        "processed": broadcast["processed"],
-        "total": broadcast["total"],
         "id": str(broadcast["_id"]),
+        "failed": extra
     }
     return clean_dict_helper(results)
 
@@ -133,7 +125,8 @@ async def update_broadcast_template_db(template_id: str,
         "updated_by": ObjectId(current_user.userId),
         "platforms": broadcast_template.platforms,
         "flow": broadcast_template.flow,
-        "name": broadcast_template.name
+        "name": broadcast_template.name,
+        "is_active": broadcast_template.is_active
     }
     result = await template_collection.update_one({"_id": ObjectId(template_id)}, {"$set": doc})
     return f"Updated {1 if result.acknowledged else 0} broadcast template."
@@ -188,8 +181,8 @@ async def get_broadcast_history_one(_id) -> BroadcastHistorySchemaDbOut:
     user_pipeline = add_user_pipeline('created_by', 'created_by')
     pipeline = [{"$match": query}] + user_pipeline
     broadcast = await collection.aggregate(pipeline).next()
-    print(broadcast)
-    return BroadcastHistorySchemaDbOut(**broadcast_history_helper(broadcast))
+    extra = await bot_user_collection.distinct('last_name', {'facebook.id': {"$in": broadcast.get("failed", [])}})
+    return BroadcastHistorySchemaDbOut(**broadcast_history_helper(broadcast, extra=extra))
 
 
 async def add_broadcast_db(broadcast: BroadcastIn, current_user: CurrentUserSchema) -> str:
@@ -210,6 +203,14 @@ async def add_broadcast_db(broadcast: BroadcastIn, current_user: CurrentUserSche
 
         flow = await flow_collection.insert_one(doc)
         flow_id = flow.inserted_id
+
+    if broadcast.sendToAll:
+        bot_user_total = await bot_user_collection.count_documents({'is_active': True})
+    else:
+        bot_user_total = await bot_user_collection.count_documents({'is_active': True,
+                                                                    "tags": {"$in": broadcast.tags,
+                                                                             "$nin": broadcast.exclude}})
+
     doc = {
         "updated_at": now,
         "created_at": now,
@@ -226,7 +227,7 @@ async def add_broadcast_db(broadcast: BroadcastIn, current_user: CurrentUserSche
         "scheduled": broadcast.scheduled,
         "processed": 0,
         "sent": 0,
-        "total": 10
+        "total": bot_user_total
     }
 
     result = await collection.insert_one(doc)
