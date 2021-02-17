@@ -39,7 +39,7 @@ class QuickReplyItem(BaseModel):
 
 
 class ButtonItem(BaseModel):
-    title: dict
+    title: Optional[dict]
     type: ButtonTypeEnum
     payload: Optional[Union[QuickReplyPayload, str]]
     url: Optional[str]
@@ -47,8 +47,8 @@ class ButtonItem(BaseModel):
 
 class GenericTemplateItem(BaseModel):
     file_name: Optional[str] = Field(alias='fileName')
-    image_url: str = Field(alias='imageUrl')
-    title: dict
+    image_url: Optional[str] = Field(alias='imageUrl')
+    title: Optional[dict]
     subtitle: dict
     buttons: list[ButtonItem]
 
@@ -87,19 +87,27 @@ class FlowComponents(AttachmentItemComponent, GenericTemplateComponent, TextComp
 
 class FlowTypeEnum(str, Enum):
     GENERIC_TEMPLATE = 'genericTemplate'
-    IMAGE = 'imageAttachment'
+    IMAGES = 'imageAttachment'
     FILE = 'fileAttachment'
     BUTTON_TEMPLATE = 'buttonTemplate'
     FLOW = 'flow'
     MESSAGE = 'message'
-    VIDEO = 'videoAttachment'
+    VIDEOS = 'videoAttachment'
+
+    # not supported yet
+    INPUT = 'input'
+    CUSTOM = 'custom'
+    IMAGE = 'image'
+    USER_ATTRIBUTE = 'userAttribute'
+    ENTITY_SEARCH = 'entitySearch'
+    VIDEO = 'video'
 
     def __str__(self):
-        if self.value == self.IMAGE:
+        if self.value == self.IMAGES:
             return 'images'
         elif self.value == self.FILE:
             return 'files'
-        elif self.value == self.VIDEO:
+        elif self.value == self.VIDEOS:
             return 'videos'
         return stringcase.snakecase(self.value)
 
@@ -514,19 +522,27 @@ class FlowComponentsOut(AttachmentItemComponentOut, GenericTemplateComponentOut,
 
 class FlowTypeEnumOut(str, Enum):
     GENERIC_TEMPLATE = 'generic_template'
-    IMAGE = 'images'
+    IMAGES = 'images'
     FILE = 'files'
     BUTTON_TEMPLATE = 'button_template'
     FLOW = 'flow'
     MESSAGE = 'message'
-    VIDEO = 'videos'
+    VIDEOS = 'videos'
+
+    # not supported yet on portal
+    INPUT = 'input'
+    CUSTOM = 'custom'
+    IMAGE = 'image'
+    VIDEO = 'video'
+    USER_ATTRIBUTE = 'user_attribute'
+    ENTITY_SEARCH = 'entity_search'
 
     def __str__(self):
-        if self.value == self.IMAGE:
+        if self.value == self.IMAGES:
             return 'imageAttachment'
         elif self.value == self.FILE:
             return 'fileAttachment'
-        elif self.value == self.VIDEO:
+        elif self.value == self.VIDEOS:
             return 'videoAttachment'
         return stringcase.camelcase(self.value)
 

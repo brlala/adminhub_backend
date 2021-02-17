@@ -119,11 +119,11 @@ async def add_flows_to_db_from_flow(flows_created: FlowItemCreateIn, current_use
 def format_flow_to_database_format(flow: FlowItem):
     if flow.type == FlowTypeEnum.GENERIC_TEMPLATE:
         pass
-    elif flow.type == FlowTypeEnum.IMAGE:
+    elif flow.type == FlowTypeEnum.IMAGES:
         pass
     elif flow.type == FlowTypeEnum.FILE:
         pass
-    elif flow.type == FlowTypeEnum.VIDEO:
+    elif flow.type == FlowTypeEnum.VIDEOS:
         pass
     elif flow.type == FlowTypeEnum.BUTTON_TEMPLATE:
         pass
