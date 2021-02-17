@@ -85,6 +85,7 @@ class QuestionSchemaOut(QuestionSchemaDb):
     answer_flow: Optional[FlowSchemaDbOut]
     triggered_count: Optional[int] = 0
     status: Status
+
     class Config:
         schema_extra = {
             "example": {
