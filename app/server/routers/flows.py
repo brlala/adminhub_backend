@@ -53,7 +53,7 @@ async def get_flows(field: Optional[str] = None):
     return flows
 
 
-@router.get("/{flow_id}", response_model=FlowSchemaDbOut)
+@router.get("/{flow_id}", response_model=FlowSchemaDbOut, response_model_exclude_none=True)
 async def get_flow(flow_id: str):
     flow = await get_flow_one(flow_id)
     return flow

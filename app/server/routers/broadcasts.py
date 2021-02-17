@@ -11,6 +11,7 @@ from ..db_utils.broadcasts import (get_broadcast_templates_list, get_broadcast_t
                                    add_broadcast_db)
 from ..db_utils.flows import get_flow_one
 from ..models.broadcast import NewBroadcastTemplate, BroadcastIn
+from ..models.flow import FlowSchemaDbOut
 from ..utils.security import get_current_active_user
 
 router = APIRouter(
@@ -94,6 +95,12 @@ async def get_broadcast_histories(tags: Optional[list[str]] = Query(None),
                                   current_user: CurrentUserSchema = Depends(get_current_active_user)):
     broadcast_history = await get_broadcast_history_list(tags=tags, intersect=intersect, status=status)
     return {'data': broadcast_history}
+
+
+@router.get("/history/flow/{flow_id}", response_model=FlowSchemaDbOut, response_model_exclude_none=True)
+async def get_flow(flow_id: str):
+    flow = await get_flow_one(flow_id)
+    return {'data': flow}
 
 
 @router.get("/history/{broadcast_id}")
