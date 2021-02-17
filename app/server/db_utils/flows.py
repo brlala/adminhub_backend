@@ -22,10 +22,10 @@ def flow_helper(flow) -> dict:
     return clean_dict_helper(results)
 
 
-async def get_flow_one(_id: str) -> FlowSchemaDb:
+async def get_flow_one(_id: str) -> FlowSchemaDbOut:
     query = {"_id": ObjectId(_id)}
     async for flow in collection.find(query):
-        return FlowSchemaDb(**flow_helper(flow))
+        return FlowSchemaDbOut(**flow_helper(flow))
 
 
 async def get_flows_and_count_db(*, current_page: int, page_size: int, sorter: str = None, flow_name: str,
@@ -47,7 +47,7 @@ async def get_flows_and_count_db(*, current_page: int, page_size: int, sorter: s
     return flows, total
 
 
-async def get_flows_db(*, current_page: int, page_size: int, sorter: str = None, query: dict) -> list[FlowSchemaDb]:
+async def get_flows_db(*, current_page: int, page_size: int, sorter: str = None, query: dict) -> list[FlowSchemaDbOut]:
     # always show the newest first
     sort = [("_id", -1)]
     if sorter:

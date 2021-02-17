@@ -46,7 +46,7 @@ class ButtonItem(BaseModel):
 
 
 class GenericTemplateItem(BaseModel):
-    file_name: str = Field(alias='fileName')
+    file_name: Optional[str] = Field(alias='fileName')
     image_url: str = Field(alias='imageUrl')
     title: dict
     subtitle: dict
@@ -440,6 +440,8 @@ class ButtonItemOut(ButtonItem):
 
 
 class AttachmentItemOut(AttachmentItem):
+    file_name: Optional[str] = Field(alias='fileName')
+
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
