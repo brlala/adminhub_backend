@@ -55,6 +55,7 @@ class GenericTemplateItem(BaseModel):
 
 class AttachmentItemComponent(BaseModel):  # include file, video, image component
     attachments: Optional[list[AttachmentItem]]
+    url: Optional[str]
 
 
 class GenericTemplateComponent(BaseModel):  # include file, video, image component
