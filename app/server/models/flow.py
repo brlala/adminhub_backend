@@ -36,6 +36,7 @@ class QuickReplyPayload(BaseModel):
 class QuickReplyItem(BaseModel):
     text: dict
     payload: Union[QuickReplyPayload, str]
+    value: Optional[str]
 
 
 class ButtonItem(BaseModel):
@@ -62,8 +63,14 @@ class GenericTemplateComponent(BaseModel):  # include file, video, image compone
     elements: Optional[list[GenericTemplateItem]]
 
 
+class QuickReplyComponentSaveTo(BaseModel):  # include file, video, image component
+    attribute_name: str = Field(alias='attributeName')
+    is_temporary: bool = Field(alias='isTemporary')
+
+
 class QuickReplyComponent(BaseModel):  # include file, video, image component
     quick_replies: Optional[list[QuickReplyItem]] = Field(alias='quickReplies')
+    save_to: Optional[QuickReplyComponentSaveTo] = Field(alias='saveTo')
 
 
 class TextComponent(BaseModel):  # include file, video, image component
@@ -82,11 +89,11 @@ class ButtonTemplateComponent(BaseModel):  # include file, video, image componen
 
 
 class InputComponent(BaseModel):
-    input_name: Optional[str]
-    input_type: Optional[str]
-    custom_regex: Optional[str]
-    invalid_message: Optional[str]
-    is_temporary: Optional[bool]
+    input_name: Optional[str] = Field(alias='inputName')
+    input_type: Optional[str] = Field(alias='inputType')
+    custom_regex: Optional[str] = Field(alias='customRegex')
+    invalid_message: Optional[str] = Field(alias='invalidMessage')
+    is_temporary: Optional[bool] = Field(alias='isTemporary')
 
 
 class FunctionComponent(BaseModel):
@@ -94,14 +101,65 @@ class FunctionComponent(BaseModel):
 
 
 class UserAttributeComponent(BaseModel):
-    action_type: Optional[str]
-    attribute_name: Optional[str]
-    attribute_value: Optional[str]
-    is_temporary: Optional[bool]
+    action_type: Optional[str] = Field(alias='actionType')
+    attribute_name: Optional[str] = Field(alias='attributeName')
+    attribute_value: Optional[str] = Field(alias='attributeValue')
+    is_temporary: Optional[bool] = Field(alias='isTemporary')
+
+
+class EntitySearchFilterEntityComponent(BaseModel):
+    user_attribute: Optional[str] = Field(alias='userAttribute')
+    memory_attribute: Optional[str] = Field(alias='memoryAttribute')
+
+
+class OperatorTypeEnum(str, Enum):
+    MORE = '>'
+    LESS = '<'
+    EQUAL = '='
+    MORE_THAN_OR_EQUAL = '>='
+    LESS_THAN_OR_EQUAL = '<='
+    CONTAINS = 'contains'
+
+
+class EntitySearchFilterComponent(BaseModel):
+    attribute: str
+    operator: OperatorTypeEnum
+    value: Union[str, EntitySearchFilterEntityComponent]
+
+
+class EntitySearchSortComponent(BaseModel):
+    attribute: str
+    direction: int
+
+
+class EntitySearchSearchComponent(BaseModel):
+    primary_entity: Optional[str] = Field(alias='primaryEntity')
+    filters: list[EntitySearchFilterComponent]
+    sort: list[EntitySearchSortComponent]
+
+
+class EntitySearchDisplayComponent(BaseModel):
+    configure: bool
+
+
+class EntitySearchFoundFlowComponent(BaseModel):
+    function_name: Optional[str] = Field(alias='functionName')
+
+
+class EntitySearchComponent(BaseModel):
+    search: Optional[EntitySearchSearchComponent]
+    display_attribute_answer: Optional[str] = Field(alias='displayAttributeAnswer')
+    show_filter_msg: Optional[bool] = Field(alias='showFilterMsg')
+    show_sort_msg: Optional[bool] = Field(alias='showSortMsg')
+    skip_selection_when_one_result: Optional[bool] = Field(alias='skipSelectionWhenOneResult')
+    display: Optional[EntitySearchDisplayComponent]
+    found_flow: Optional[EntitySearchFoundFlowComponent] = Field(alias='foundFlow')
+    not_found_flow: Optional[EntitySearchFoundFlowComponent] = Field(alias='notFoundFlow')
 
 
 class FlowComponents(AttachmentItemComponent, GenericTemplateComponent, TextComponent, FlowComponent,
-                     ButtonTemplateComponent, QuickReplyComponent, InputComponent, FunctionComponent, UserAttributeComponent):
+                     ButtonTemplateComponent, QuickReplyComponent, InputComponent, FunctionComponent,
+                     UserAttributeComponent, EntitySearchComponent):
     pass
 
 
@@ -113,12 +171,12 @@ class FlowTypeEnum(str, Enum):
     FLOW = 'flow'
     MESSAGE = 'message'
     VIDEOS = 'videoAttachment'
-
-    # not supported yet
     INPUT = 'input'
     CUSTOM = 'custom'
     IMAGE = 'image'
     VIDEO = 'video'
+
+    # not supported yet
     USER_ATTRIBUTE = 'userAttribute'
     ENTITY_SEARCH = 'entitySearch'
 
@@ -214,7 +272,11 @@ class FlowItemCreateIn(BaseModel):
                                         "EN": "IL PBEAR (U186)"
                                     }
                                 }
-                            ]
+                            ],
+                            "saveTo": {
+                                "attributeName": "epay_process",
+                                "isTemporary": True
+                            }
                         }
                     },
                     {
@@ -285,6 +347,91 @@ class FlowItemCreateIn(BaseModel):
                             "text": {
                                 "EN": "TEST"
                             }
+                        }
+                    },
+                    {
+                        "type": "input",
+                        "data": {
+                            "isTemporary": True,
+                            "inputName": "agent_ic",
+                            "inputType": "custom",
+                            "customRegex": "^\\d{3}$",
+                            "invalidMessage": "You have entered an invalid format, please try again (etc. 123):"
+                        }
+                    },
+                    {
+                        "type": "custom",
+                        "data": {
+                            "function": "display_agent_birthyears"
+                        }
+                    },
+                    {
+                        "type": "image",
+                        "data": {
+                            "url": "https://s3-ap-southeast-1.amazonaws.com/choy-san/flow-image-1554258915.png"
+                        }
+                    },
+                    {
+                        "type": "video",
+                        "data": {
+                            "url": "https://gelm2prod.oss-ap-southeast-3.aliyuncs.com/portal/ePolicy%20agents.mp4"
+                        }
+                    },
+                    {
+                        "type": "userAttribute",
+                        "data": {
+                            "actionType": "set",
+                            "attributeName": "life_claim",
+                            "attributeValue": "Living Assurance",
+                            "isTemporary": True
+                        }
+                    },
+                    {
+                        "type": "entitySearch",
+                        "data": {
+                            "search": {
+                                "primaryEntity": "5ecdf7db51cc76038ea56e11",
+                                "filters": [
+                                    {
+                                        "attribute": "ba218205-e72c-4cad-8b78-b13afb492886",
+                                        "operator": "=",
+                                        "value": {
+                                            "userAttribute": "epay_bank"
+                                        }
+                                    },
+                                    {
+                                        "attribute": "ba218205-e72c-4cad-8b78-b13afb492886",
+                                        "operator": "=",
+                                        "value": {
+                                            "memoryAttribute": "epay_attribute-value=a79ab047-c889-4735-adb2-1841c1f5f9ee"
+                                        }
+                                    },
+                                    {
+                                        "attribute": "name",
+                                        "operator": "contains",
+                                        "value": "Bharu"
+                                    }
+                                ],
+                                "sort": [
+                                    {
+                                        "attribute": "name",
+                                        "direction": 1
+                                    },
+                                    {
+                                        "attribute": "ee0438e6-8514-4ac2-ae07-81bb7309bdde",
+                                        "direction": -1
+                                    }
+                                ]
+                            },
+                            "displayAttributeAnswer": "c4282f1c-4351-424f-9558-889eb50f7903",
+                            "showFilterMsg": False,
+                            "showSortMsg": False,
+                            "skipSelectionWhenOneResult": False,
+                            "display": {
+                                "configure": False
+                            },
+                            "foundFlow": {"functionName": "epay_documents_other"},
+                            "notFoundFlow": {}
                         }
                     }
                 ]
@@ -491,8 +638,15 @@ class QuickReplyItemOut(QuickReplyItem):
         allow_population_by_field_name = True
 
 
+class QuickReplyComponentSaveToOut(QuickReplyComponentSaveTo):  # include file, video, image component
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
 class QuickReplyComponentOut(QuickReplyComponent):  # include file, video, image component
     quick_replies: Optional[list[QuickReplyItemOut]] = Field(alias='quickReplies')
+    save_to: Optional[QuickReplyComponentSaveToOut] = Field(alias='saveTo')
 
     class Config:
         alias_generator = to_camel
@@ -546,14 +700,68 @@ class FunctionComponentOut(FunctionComponent):
         alias_generator = to_camel
         allow_population_by_field_name = True
 
+
 class UserAttributeComponentOut(UserAttributeComponent):
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
 
 
+class EntitySearchFilterEntityComponentOut(EntitySearchFilterEntityComponent):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class EntitySearchFilterComponentOut(EntitySearchFilterComponent):
+    value: Union[str, EntitySearchFilterEntityComponentOut]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class EntitySearchSortComponentOut(EntitySearchSortComponent):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class EntitySearchSearchComponentOut(EntitySearchSearchComponent):
+    filters: list[EntitySearchFilterComponentOut]
+    sort: list[EntitySearchSortComponentOut]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class EntitySearchDisplayComponentOut(EntitySearchDisplayComponent):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class EntitySearchFoundFlowComponentOut(EntitySearchFoundFlowComponent):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class EntitySearchComponentOut(EntitySearchComponent):
+    search: Optional[EntitySearchSearchComponentOut]
+    display: Optional[EntitySearchDisplayComponentOut]
+    found_flow: Optional[EntitySearchFoundFlowComponentOut] = Field(alias='foundFlow')
+    not_found_flow: Optional[EntitySearchFoundFlowComponentOut] = Field(alias='notFoundFlow')
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
 class FlowComponentsOut(AttachmentItemComponentOut, GenericTemplateComponentOut, TextComponentOut, FlowComponentOut,
-                        ButtonTemplateComponentOut, QuickReplyComponentOut, InputComponentOut, FunctionComponentOut, UserAttributeComponentOut):
+                        ButtonTemplateComponentOut, QuickReplyComponentOut, InputComponentOut, FunctionComponentOut,
+                        UserAttributeComponentOut, EntitySearchComponentOut):
     pass
 
 
@@ -565,12 +773,12 @@ class FlowTypeEnumOut(str, Enum):
     FLOW = 'flow'
     MESSAGE = 'message'
     VIDEOS = 'videos'
-
-    # not supported yet on portal
     INPUT = 'input'
     IMAGE = 'image'
     VIDEO = 'video'
     CUSTOM = 'custom'
+
+    # not supported yet on portal
     USER_ATTRIBUTE = 'user_attribute'
     ENTITY_SEARCH = 'entity_search'
 

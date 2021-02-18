@@ -152,6 +152,10 @@ def convert_flow_buttons_to_object_id(flow: FlowItem):
     # flow
     if flow.data.flow_id:
         flow.data.flow_id = ObjectId(flow.data.flow_id)
+
+    # flow
+    if flow.data.search:
+        flow.data.search.primary_entity = ObjectId(flow.data.search.primary_entity)
     return flow.dict(exclude_none=True)
 
 
