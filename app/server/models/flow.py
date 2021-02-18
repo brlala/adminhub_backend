@@ -39,6 +39,16 @@ class QuickReplyItem(BaseModel):
     value: Optional[str]
 
 
+class QuickReplyComponentSaveTo(BaseModel):
+    attribute_name: Optional[str] = Field(alias='attributeName')
+    is_temporary: Optional[bool] = Field(alias='isTemporary')
+
+
+class QuickReplyComponent(BaseModel):
+    quick_replies: Optional[list[QuickReplyItem]] = Field(alias='quickReplies')
+    save_to: Optional[QuickReplyComponentSaveTo] = Field(alias='saveTo')
+
+
 class ButtonItem(BaseModel):
     title: Optional[dict]
     type: ButtonTypeEnum
@@ -54,26 +64,16 @@ class GenericTemplateItem(BaseModel):
     buttons: list[ButtonItem]
 
 
-class AttachmentItemComponent(BaseModel):  # include file, video, image component
+class AttachmentItemComponent(BaseModel):
     attachments: Optional[list[AttachmentItem]]
     url: Optional[str]
 
 
-class GenericTemplateComponent(BaseModel):  # include file, video, image component
+class GenericTemplateComponent(BaseModel):
     elements: Optional[list[GenericTemplateItem]]
 
 
-class QuickReplyComponentSaveTo(BaseModel):  # include file, video, image component
-    attribute_name: str = Field(alias='attributeName')
-    is_temporary: bool = Field(alias='isTemporary')
-
-
-class QuickReplyComponent(BaseModel):  # include file, video, image component
-    quick_replies: Optional[list[QuickReplyItem]] = Field(alias='quickReplies')
-    save_to: Optional[QuickReplyComponentSaveTo] = Field(alias='saveTo')
-
-
-class TextComponent(BaseModel):  # include file, video, image component
+class TextComponent(BaseModel):
     text: Optional[dict]
 
 
@@ -107,7 +107,7 @@ class UserAttributeComponent(BaseModel):
     is_temporary: Optional[bool] = Field(alias='isTemporary')
 
 
-class EntitySearchFilterEntityComponent(BaseModel):
+class EntitySearchFilterEntity(BaseModel):
     user_attribute: Optional[str] = Field(alias='userAttribute')
     memory_attribute: Optional[str] = Field(alias='memoryAttribute')
 
@@ -121,45 +121,45 @@ class OperatorTypeEnum(str, Enum):
     CONTAINS = 'contains'
 
 
-class EntitySearchFilterComponent(BaseModel):
+class EntitySearchFilter(BaseModel):
     attribute: str
     operator: OperatorTypeEnum
-    value: Union[str, EntitySearchFilterEntityComponent]
+    value: Union[str, EntitySearchFilterEntity]
 
 
-class EntitySearchSortComponent(BaseModel):
+class EntitySearchSort(BaseModel):
     attribute: str
     direction: int
 
 
-class EntitySearchSearchComponent(BaseModel):
+class EntitySearchSearch(BaseModel):
     primary_entity: Optional[str] = Field(alias='primaryEntity')
-    filters: list[EntitySearchFilterComponent]
-    sort: list[EntitySearchSortComponent]
+    filters: list[EntitySearchFilter]
+    sort: list[EntitySearchSort]
 
 
-class EntitySearchDisplayComponent(BaseModel):
+class EntitySearchDisplay(BaseModel):
     configure: bool
 
 
-class EntitySearchFoundFlowComponent(BaseModel):
+class EntitySearchFoundFlow(BaseModel):
     function_name: Optional[str] = Field(alias='functionName')
 
 
 class EntitySearchComponent(BaseModel):
-    search: Optional[EntitySearchSearchComponent]
+    search: Optional[EntitySearchSearch]
     display_attribute_answer: Optional[str] = Field(alias='displayAttributeAnswer')
     show_filter_msg: Optional[bool] = Field(alias='showFilterMsg')
     show_sort_msg: Optional[bool] = Field(alias='showSortMsg')
     skip_selection_when_one_result: Optional[bool] = Field(alias='skipSelectionWhenOneResult')
-    display: Optional[EntitySearchDisplayComponent]
-    found_flow: Optional[EntitySearchFoundFlowComponent] = Field(alias='foundFlow')
-    not_found_flow: Optional[EntitySearchFoundFlowComponent] = Field(alias='notFoundFlow')
+    display: Optional[EntitySearchDisplay]
+    found_flow: Optional[EntitySearchFoundFlow] = Field(alias='foundFlow')
+    not_found_flow: Optional[EntitySearchFoundFlow] = Field(alias='notFoundFlow')
 
 
 class FlowComponents(AttachmentItemComponent, GenericTemplateComponent, TextComponent, FlowComponent,
-                     ButtonTemplateComponent, QuickReplyComponent, InputComponent, FunctionComponent,
-                     UserAttributeComponent, EntitySearchComponent):
+                     ButtonTemplateComponent, InputComponent, FunctionComponent,
+                     UserAttributeComponent, EntitySearchComponent, QuickReplyComponent):
     pass
 
 
@@ -638,13 +638,13 @@ class QuickReplyItemOut(QuickReplyItem):
         allow_population_by_field_name = True
 
 
-class QuickReplyComponentSaveToOut(QuickReplyComponentSaveTo):  # include file, video, image component
+class QuickReplyComponentSaveToOut(QuickReplyComponentSaveTo):
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
 
 
-class QuickReplyComponentOut(QuickReplyComponent):  # include file, video, image component
+class QuickReplyComponentOut(QuickReplyComponent):
     quick_replies: Optional[list[QuickReplyItemOut]] = Field(alias='quickReplies')
     save_to: Optional[QuickReplyComponentSaveToOut] = Field(alias='saveTo')
 
@@ -653,7 +653,7 @@ class QuickReplyComponentOut(QuickReplyComponent):  # include file, video, image
         allow_population_by_field_name = True
 
 
-class AttachmentItemComponentOut(AttachmentItemComponent):  # include file, video, image component
+class AttachmentItemComponentOut(AttachmentItemComponent):
     attachments: Optional[list[AttachmentItemOut]]
 
     class Config:
@@ -661,7 +661,7 @@ class AttachmentItemComponentOut(AttachmentItemComponent):  # include file, vide
         allow_population_by_field_name = True
 
 
-class GenericTemplateComponentOut(GenericTemplateComponent):  # include file, video, image component
+class GenericTemplateComponentOut(GenericTemplateComponent):
     elements: Optional[list[GenericTemplateItemOut]]
 
     class Config:
@@ -669,19 +669,19 @@ class GenericTemplateComponentOut(GenericTemplateComponent):  # include file, vi
         allow_population_by_field_name = True
 
 
-class TextComponentOut(TextComponent):  # include file, video, image component
+class TextComponentOut(TextComponent):
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
 
 
-class FlowComponentOut(FlowComponent):  # include file, video, image component
+class FlowComponentOut(FlowComponent):
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
 
 
-class ButtonTemplateComponentOut(ButtonTemplateComponent):  # include file, video, image component
+class ButtonTemplateComponentOut(ButtonTemplateComponent):
     buttons: Optional[list[ButtonItemOut]]
 
     class Config:
@@ -707,52 +707,52 @@ class UserAttributeComponentOut(UserAttributeComponent):
         allow_population_by_field_name = True
 
 
-class EntitySearchFilterEntityComponentOut(EntitySearchFilterEntityComponent):
+class EntitySearchFilterEntityOut(EntitySearchFilterEntity):
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
 
 
-class EntitySearchFilterComponentOut(EntitySearchFilterComponent):
-    value: Union[str, EntitySearchFilterEntityComponentOut]
-
-    class Config:
-        alias_generator = to_camel
-        allow_population_by_field_name = True
-
-
-class EntitySearchSortComponentOut(EntitySearchSortComponent):
-    class Config:
-        alias_generator = to_camel
-        allow_population_by_field_name = True
-
-
-class EntitySearchSearchComponentOut(EntitySearchSearchComponent):
-    filters: list[EntitySearchFilterComponentOut]
-    sort: list[EntitySearchSortComponentOut]
+class EntitySearchFilterOut(EntitySearchFilter):
+    value: Union[str, EntitySearchFilterEntityOut]
 
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
 
 
-class EntitySearchDisplayComponentOut(EntitySearchDisplayComponent):
+class EntitySearchSortOut(EntitySearchSort):
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
 
 
-class EntitySearchFoundFlowComponentOut(EntitySearchFoundFlowComponent):
+class EntitySearchSearchOut(EntitySearchSearch):
+    filters: list[EntitySearchFilterOut]
+    sort: list[EntitySearchSortOut]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class EntitySearchDisplayOut(EntitySearchDisplay):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class EntitySearchFoundFlowOut(EntitySearchFoundFlow):
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
 
 
 class EntitySearchComponentOut(EntitySearchComponent):
-    search: Optional[EntitySearchSearchComponentOut]
-    display: Optional[EntitySearchDisplayComponentOut]
-    found_flow: Optional[EntitySearchFoundFlowComponentOut] = Field(alias='foundFlow')
-    not_found_flow: Optional[EntitySearchFoundFlowComponentOut] = Field(alias='notFoundFlow')
+    search: Optional[EntitySearchSearchOut]
+    display: Optional[EntitySearchDisplayOut]
+    found_flow: Optional[EntitySearchFoundFlowOut] = Field(alias='foundFlow')
+    not_found_flow: Optional[EntitySearchFoundFlowOut] = Field(alias='notFoundFlow')
 
     class Config:
         alias_generator = to_camel
@@ -760,8 +760,8 @@ class EntitySearchComponentOut(EntitySearchComponent):
 
 
 class FlowComponentsOut(AttachmentItemComponentOut, GenericTemplateComponentOut, TextComponentOut, FlowComponentOut,
-                        ButtonTemplateComponentOut, QuickReplyComponentOut, InputComponentOut, FunctionComponentOut,
-                        UserAttributeComponentOut, EntitySearchComponentOut):
+                        ButtonTemplateComponentOut, InputComponentOut, FunctionComponentOut,
+                        UserAttributeComponentOut, EntitySearchComponentOut, QuickReplyComponentOut):
     pass
 
 
