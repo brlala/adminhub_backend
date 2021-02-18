@@ -81,8 +81,27 @@ class ButtonTemplateComponent(BaseModel):  # include file, video, image componen
     buttons: Optional[list[ButtonItem]]
 
 
+class InputComponent(BaseModel):
+    input_name: Optional[str]
+    input_type: Optional[str]
+    custom_regex: Optional[str]
+    invalid_message: Optional[str]
+    is_temporary: Optional[bool]
+
+
+class FunctionComponent(BaseModel):
+    function: Optional[str]
+
+
+class UserAttributeComponent(BaseModel):
+    action_type: Optional[str]
+    attribute_name: Optional[str]
+    attribute_value: Optional[str]
+    is_temporary: Optional[bool]
+
+
 class FlowComponents(AttachmentItemComponent, GenericTemplateComponent, TextComponent, FlowComponent,
-                     ButtonTemplateComponent, QuickReplyComponent):
+                     ButtonTemplateComponent, QuickReplyComponent, InputComponent, FunctionComponent, UserAttributeComponent):
     pass
 
 
@@ -99,9 +118,9 @@ class FlowTypeEnum(str, Enum):
     INPUT = 'input'
     CUSTOM = 'custom'
     IMAGE = 'image'
+    VIDEO = 'video'
     USER_ATTRIBUTE = 'userAttribute'
     ENTITY_SEARCH = 'entitySearch'
-    VIDEO = 'video'
 
     def __str__(self):
         if self.value == self.IMAGES:
@@ -516,8 +535,25 @@ class ButtonTemplateComponentOut(ButtonTemplateComponent):  # include file, vide
         allow_population_by_field_name = True
 
 
+class InputComponentOut(InputComponent):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class FunctionComponentOut(FunctionComponent):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+class UserAttributeComponentOut(UserAttributeComponent):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
 class FlowComponentsOut(AttachmentItemComponentOut, GenericTemplateComponentOut, TextComponentOut, FlowComponentOut,
-                        ButtonTemplateComponentOut, QuickReplyComponentOut):
+                        ButtonTemplateComponentOut, QuickReplyComponentOut, InputComponentOut, FunctionComponentOut, UserAttributeComponentOut):
     pass
 
 
@@ -532,9 +568,9 @@ class FlowTypeEnumOut(str, Enum):
 
     # not supported yet on portal
     INPUT = 'input'
-    CUSTOM = 'custom'
     IMAGE = 'image'
     VIDEO = 'video'
+    CUSTOM = 'custom'
     USER_ATTRIBUTE = 'user_attribute'
     ENTITY_SEARCH = 'entity_search'
 
