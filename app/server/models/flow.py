@@ -36,6 +36,17 @@ class QuickReplyPayload(BaseModel):
 class QuickReplyItem(BaseModel):
     text: dict
     payload: Union[QuickReplyPayload, str]
+    value: Optional[str]
+
+
+class QuickReplyComponentSaveTo(BaseModel):
+    attribute_name: Optional[str] = Field(alias='attributeName')
+    is_temporary: Optional[bool] = Field(alias='isTemporary')
+
+
+class QuickReplyComponent(BaseModel):
+    quick_replies: Optional[list[QuickReplyItem]] = Field(alias='quickReplies')
+    save_to: Optional[QuickReplyComponentSaveTo] = Field(alias='saveTo')
 
 
 class ButtonItem(BaseModel):
@@ -53,19 +64,16 @@ class GenericTemplateItem(BaseModel):
     buttons: list[ButtonItem]
 
 
-class AttachmentItemComponent(BaseModel):  # include file, video, image component
+class AttachmentItemComponent(BaseModel):
     attachments: Optional[list[AttachmentItem]]
+    url: Optional[str]
 
 
-class GenericTemplateComponent(BaseModel):  # include file, video, image component
+class GenericTemplateComponent(BaseModel):
     elements: Optional[list[GenericTemplateItem]]
 
 
-class QuickReplyComponent(BaseModel):  # include file, video, image component
-    quick_replies: Optional[list[QuickReplyItem]] = Field(alias='quickReplies')
-
-
-class TextComponent(BaseModel):  # include file, video, image component
+class TextComponent(BaseModel):
     text: Optional[dict]
 
 
@@ -80,8 +88,78 @@ class ButtonTemplateComponent(BaseModel):  # include file, video, image componen
     buttons: Optional[list[ButtonItem]]
 
 
+class InputComponent(BaseModel):
+    input_name: Optional[str] = Field(alias='inputName')
+    input_type: Optional[str] = Field(alias='inputType')
+    custom_regex: Optional[str] = Field(alias='customRegex')
+    invalid_message: Optional[str] = Field(alias='invalidMessage')
+    is_temporary: Optional[bool] = Field(alias='isTemporary')
+
+
+class FunctionComponent(BaseModel):
+    function: Optional[str]
+
+
+class UserAttributeComponent(BaseModel):
+    action_type: Optional[str] = Field(alias='actionType')
+    attribute_name: Optional[str] = Field(alias='attributeName')
+    attribute_value: Optional[str] = Field(alias='attributeValue')
+    is_temporary: Optional[bool] = Field(alias='isTemporary')
+
+
+class EntitySearchFilterEntity(BaseModel):
+    user_attribute: Optional[str] = Field(alias='userAttribute')
+    memory_attribute: Optional[str] = Field(alias='memoryAttribute')
+
+
+class OperatorTypeEnum(str, Enum):
+    MORE = '>'
+    LESS = '<'
+    EQUAL = '='
+    MORE_THAN_OR_EQUAL = '>='
+    LESS_THAN_OR_EQUAL = '<='
+    CONTAINS = 'contains'
+
+
+class EntitySearchFilter(BaseModel):
+    attribute: str
+    operator: OperatorTypeEnum
+    value: Union[str, EntitySearchFilterEntity]
+
+
+class EntitySearchSort(BaseModel):
+    attribute: str
+    direction: int
+
+
+class EntitySearchSearch(BaseModel):
+    primary_entity: Optional[str] = Field(alias='primaryEntity')
+    filters: list[EntitySearchFilter]
+    sort: list[EntitySearchSort]
+
+
+class EntitySearchDisplay(BaseModel):
+    configure: bool
+
+
+class EntitySearchFoundFlow(BaseModel):
+    function_name: Optional[str] = Field(alias='functionName')
+
+
+class EntitySearchComponent(BaseModel):
+    search: Optional[EntitySearchSearch]
+    display_attribute_answer: Optional[str] = Field(alias='displayAttributeAnswer')
+    show_filter_msg: Optional[bool] = Field(alias='showFilterMsg')
+    show_sort_msg: Optional[bool] = Field(alias='showSortMsg')
+    skip_selection_when_one_result: Optional[bool] = Field(alias='skipSelectionWhenOneResult')
+    display: Optional[EntitySearchDisplay]
+    found_flow: Optional[EntitySearchFoundFlow] = Field(alias='foundFlow')
+    not_found_flow: Optional[EntitySearchFoundFlow] = Field(alias='notFoundFlow')
+
+
 class FlowComponents(AttachmentItemComponent, GenericTemplateComponent, TextComponent, FlowComponent,
-                     ButtonTemplateComponent, QuickReplyComponent):
+                     ButtonTemplateComponent, InputComponent, FunctionComponent,
+                     UserAttributeComponent, EntitySearchComponent, QuickReplyComponent):
     pass
 
 
@@ -93,14 +171,14 @@ class FlowTypeEnum(str, Enum):
     FLOW = 'flow'
     MESSAGE = 'message'
     VIDEOS = 'videoAttachment'
-
-    # not supported yet
     INPUT = 'input'
     CUSTOM = 'custom'
     IMAGE = 'image'
+    VIDEO = 'video'
+
+    # not supported yet
     USER_ATTRIBUTE = 'userAttribute'
     ENTITY_SEARCH = 'entitySearch'
-    VIDEO = 'video'
 
     def __str__(self):
         if self.value == self.IMAGES:
@@ -194,7 +272,11 @@ class FlowItemCreateIn(BaseModel):
                                         "EN": "IL PBEAR (U186)"
                                     }
                                 }
-                            ]
+                            ],
+                            "saveTo": {
+                                "attributeName": "epay_process",
+                                "isTemporary": True
+                            }
                         }
                     },
                     {
@@ -265,6 +347,91 @@ class FlowItemCreateIn(BaseModel):
                             "text": {
                                 "EN": "TEST"
                             }
+                        }
+                    },
+                    {
+                        "type": "input",
+                        "data": {
+                            "isTemporary": True,
+                            "inputName": "agent_ic",
+                            "inputType": "custom",
+                            "customRegex": "^\\d{3}$",
+                            "invalidMessage": "You have entered an invalid format, please try again (etc. 123):"
+                        }
+                    },
+                    {
+                        "type": "custom",
+                        "data": {
+                            "function": "display_agent_birthyears"
+                        }
+                    },
+                    {
+                        "type": "image",
+                        "data": {
+                            "url": "https://s3-ap-southeast-1.amazonaws.com/choy-san/flow-image-1554258915.png"
+                        }
+                    },
+                    {
+                        "type": "video",
+                        "data": {
+                            "url": "https://gelm2prod.oss-ap-southeast-3.aliyuncs.com/portal/ePolicy%20agents.mp4"
+                        }
+                    },
+                    {
+                        "type": "userAttribute",
+                        "data": {
+                            "actionType": "set",
+                            "attributeName": "life_claim",
+                            "attributeValue": "Living Assurance",
+                            "isTemporary": True
+                        }
+                    },
+                    {
+                        "type": "entitySearch",
+                        "data": {
+                            "search": {
+                                "primaryEntity": "5ecdf7db51cc76038ea56e11",
+                                "filters": [
+                                    {
+                                        "attribute": "ba218205-e72c-4cad-8b78-b13afb492886",
+                                        "operator": "=",
+                                        "value": {
+                                            "userAttribute": "epay_bank"
+                                        }
+                                    },
+                                    {
+                                        "attribute": "ba218205-e72c-4cad-8b78-b13afb492886",
+                                        "operator": "=",
+                                        "value": {
+                                            "memoryAttribute": "epay_attribute-value=a79ab047-c889-4735-adb2-1841c1f5f9ee"
+                                        }
+                                    },
+                                    {
+                                        "attribute": "name",
+                                        "operator": "contains",
+                                        "value": "Bharu"
+                                    }
+                                ],
+                                "sort": [
+                                    {
+                                        "attribute": "name",
+                                        "direction": 1
+                                    },
+                                    {
+                                        "attribute": "ee0438e6-8514-4ac2-ae07-81bb7309bdde",
+                                        "direction": -1
+                                    }
+                                ]
+                            },
+                            "displayAttributeAnswer": "c4282f1c-4351-424f-9558-889eb50f7903",
+                            "showFilterMsg": False,
+                            "showSortMsg": False,
+                            "skipSelectionWhenOneResult": False,
+                            "display": {
+                                "configure": False
+                            },
+                            "foundFlow": {"functionName": "epay_documents_other"},
+                            "notFoundFlow": {}
                         }
                     }
                 ]
@@ -471,15 +638,22 @@ class QuickReplyItemOut(QuickReplyItem):
         allow_population_by_field_name = True
 
 
-class QuickReplyComponentOut(QuickReplyComponent):  # include file, video, image component
+class QuickReplyComponentSaveToOut(QuickReplyComponentSaveTo):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class QuickReplyComponentOut(QuickReplyComponent):
     quick_replies: Optional[list[QuickReplyItemOut]] = Field(alias='quickReplies')
+    save_to: Optional[QuickReplyComponentSaveToOut] = Field(alias='saveTo')
 
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
 
 
-class AttachmentItemComponentOut(AttachmentItemComponent):  # include file, video, image component
+class AttachmentItemComponentOut(AttachmentItemComponent):
     attachments: Optional[list[AttachmentItemOut]]
 
     class Config:
@@ -487,7 +661,7 @@ class AttachmentItemComponentOut(AttachmentItemComponent):  # include file, vide
         allow_population_by_field_name = True
 
 
-class GenericTemplateComponentOut(GenericTemplateComponent):  # include file, video, image component
+class GenericTemplateComponentOut(GenericTemplateComponent):
     elements: Optional[list[GenericTemplateItemOut]]
 
     class Config:
@@ -495,19 +669,19 @@ class GenericTemplateComponentOut(GenericTemplateComponent):  # include file, vi
         allow_population_by_field_name = True
 
 
-class TextComponentOut(TextComponent):  # include file, video, image component
+class TextComponentOut(TextComponent):
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
 
 
-class FlowComponentOut(FlowComponent):  # include file, video, image component
+class FlowComponentOut(FlowComponent):
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
 
 
-class ButtonTemplateComponentOut(ButtonTemplateComponent):  # include file, video, image component
+class ButtonTemplateComponentOut(ButtonTemplateComponent):
     buttons: Optional[list[ButtonItemOut]]
 
     class Config:
@@ -515,8 +689,79 @@ class ButtonTemplateComponentOut(ButtonTemplateComponent):  # include file, vide
         allow_population_by_field_name = True
 
 
+class InputComponentOut(InputComponent):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class FunctionComponentOut(FunctionComponent):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class UserAttributeComponentOut(UserAttributeComponent):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class EntitySearchFilterEntityOut(EntitySearchFilterEntity):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class EntitySearchFilterOut(EntitySearchFilter):
+    value: Union[str, EntitySearchFilterEntityOut]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class EntitySearchSortOut(EntitySearchSort):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class EntitySearchSearchOut(EntitySearchSearch):
+    filters: list[EntitySearchFilterOut]
+    sort: list[EntitySearchSortOut]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class EntitySearchDisplayOut(EntitySearchDisplay):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class EntitySearchFoundFlowOut(EntitySearchFoundFlow):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class EntitySearchComponentOut(EntitySearchComponent):
+    search: Optional[EntitySearchSearchOut]
+    display: Optional[EntitySearchDisplayOut]
+    found_flow: Optional[EntitySearchFoundFlowOut] = Field(alias='foundFlow')
+    not_found_flow: Optional[EntitySearchFoundFlowOut] = Field(alias='notFoundFlow')
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
 class FlowComponentsOut(AttachmentItemComponentOut, GenericTemplateComponentOut, TextComponentOut, FlowComponentOut,
-                        ButtonTemplateComponentOut, QuickReplyComponentOut):
+                        ButtonTemplateComponentOut, InputComponentOut, FunctionComponentOut,
+                        UserAttributeComponentOut, EntitySearchComponentOut, QuickReplyComponentOut):
     pass
 
 
@@ -528,12 +773,12 @@ class FlowTypeEnumOut(str, Enum):
     FLOW = 'flow'
     MESSAGE = 'message'
     VIDEOS = 'videos'
-
-    # not supported yet on portal
     INPUT = 'input'
-    CUSTOM = 'custom'
     IMAGE = 'image'
     VIDEO = 'video'
+    CUSTOM = 'custom'
+
+    # not supported yet on portal
     USER_ATTRIBUTE = 'user_attribute'
     ENTITY_SEARCH = 'entity_search'
 
