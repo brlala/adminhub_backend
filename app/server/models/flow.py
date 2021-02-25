@@ -594,12 +594,6 @@ class FlowItemEditIn(FlowItemCreateIn):
         }
 
 
-# class ButtonItemOut(ButtonItem):
-#     class Config:
-#         alias_generator = to_camel
-#         allow_population_by_field_name = True
-
-
 class QuickReplyPayloadOut(QuickReplyPayload):
     class Config:
         alias_generator = to_camel
@@ -608,6 +602,8 @@ class QuickReplyPayloadOut(QuickReplyPayload):
 
 class ButtonItemOut(ButtonItem):
     payload: Optional[Union[QuickReplyPayloadOut, str]]
+    title: Union[str, dict]
+    subtitle: Optional[Union[str, dict]]
 
     class Config:
         alias_generator = to_camel
@@ -624,6 +620,8 @@ class AttachmentItemOut(AttachmentItem):
 
 class GenericTemplateItemOut(GenericTemplateItem):
     buttons: list[ButtonItemOut]
+    title: Union[str, dict]
+    subtitle: Union[str, dict]
 
     class Config:
         alias_generator = to_camel
@@ -632,6 +630,7 @@ class GenericTemplateItemOut(GenericTemplateItem):
 
 class QuickReplyItemOut(QuickReplyItem):
     payload: Union[QuickReplyPayloadOut, str]
+    text: Optional[Union[str, dict]]
 
     class Config:
         alias_generator = to_camel
@@ -670,6 +669,7 @@ class GenericTemplateComponentOut(GenericTemplateComponent):
 
 
 class TextComponentOut(TextComponent):
+    text: Optional[Union[str, dict]]
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Query, Depends
 from ..db_utils.conversations import get_conversations_and_count_db
 from ..db_utils.questions import get_topics_db, add_question_db, remove_questions_db, \
     edit_question_db
+from ..models.conversations import GetConversationsTable
 from ..models.current_user import CurrentUserSchema
 from ..models.question import QuestionIn, DeleteQuestion
 from ..utils.security import get_current_active_user
@@ -16,7 +17,7 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("/", response_model_exclude_none=True, response_model=GetConversationsTable)
 async def get_conversations(tags: Optional[list[str]] = Query(None),
                             search_query: Optional[str] = Query(None, alias="searchQuery"),
                             current_page: int = Query(1, alias="current"),
