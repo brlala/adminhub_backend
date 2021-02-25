@@ -187,6 +187,7 @@ async def get_broadcast_history_one(_id) -> BroadcastHistorySchemaDbOut:
 
 async def add_broadcast_db(broadcast: BroadcastIn, current_user: CurrentUserSchema) -> str:
     now = get_local_now()
+    print(broadcast)
     if broadcast.flowId:
         flow_id = broadcast.flowId
     else:

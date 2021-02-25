@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import Optional
 
+from enum import Enum
 from pydantic import Field
 from pydantic.main import BaseModel
 
-from app.server.models.flow import FlowComponentOut
 from app.server.models.portal_user import PortalUserBasicSchemaOut
 from app.server.utils.common import to_camel
 
@@ -97,12 +97,71 @@ class BroadcastHistoryListSchemaDbOut(BaseModel):
     sent: int
     processed: int
     total: int
-
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
 
 
+class FlowTextOut(BaseModel):
+    EN: Optional[str]
+
+
+class FlowButtonsOut(BaseModel):
+    title: Optional[FlowTextOut]
+    type: Optional[str]
+    url: Optional[str]
+    flow_id: Optional[str]
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class FlowElementsOut(BaseModel):
+    title: Optional[FlowTextOut]
+    subtitle: Optional[FlowTextOut]
+    image_url: Optional[str]
+    buttons: Optional[list[FlowButtonsOut]]
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class FlowDataOut(BaseModel):
+    text: Optional[FlowTextOut]
+    url: Optional[str]
+    title: Optional[FlowTextOut]
+    buttons: Optional[list[FlowButtonsOut]]
+    elements: Optional[list[FlowElementsOut]]
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class FlowTypeEnum(str, Enum):
+    GENERIC_TEMPLATE = 'genericTemplate'
+    FILE = 'fileAttachment'
+    BUTTON_TEMPLATE = 'buttonTemplate'
+    FLOW = 'flow'
+    MESSAGE = 'message'
+    IMAGE = 'image'
+    VIDEO = 'video'
+
+    # not supported yet
+    INPUT = 'input'
+    CUSTOM = 'custom'
+    USER_ATTRIBUTE = 'userAttribute'
+    ENTITY_SEARCH = 'entitySearch'
+
+
+class FlowComponentOut(BaseModel):
+    type: FlowTypeEnum
+    data: FlowDataOut
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+from app.server.models.flow import FlowItemOut
 class BroadcastHistorySchemaDbOut(BaseModel):
     id: str
     created_at: datetime
