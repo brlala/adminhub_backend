@@ -44,10 +44,10 @@ class MessageSchemaDb(BaseModel):
     data: FlowComponentsOut
     chatbot: MessageChatbot
     platform: str
-    incoming_message_id: str
+    incoming_message_id: Optional[str]
     sender_platform_id: str
     receiver_platform_id: str
-    abbr: str
+    abbr: Optional[str]
     sender_id: str
     receiver_id: str
     created_at: datetime

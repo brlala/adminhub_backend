@@ -1,9 +1,11 @@
-from bson import SON
+from re import escape
+
+from bson import SON, Regex
 
 from app.server.db.collections import bot_user_collection
 from app.server.models.conversations import ConversationBotUserSchema
 from app.server.models.flow import FlowTypeEnumOut
-from app.server.utils.common import clean_dict_helper
+from app.server.utils.common import clean_dict_helper, form_query, form_pipeline
 
 
 def bot_user_helper(bot_user) -> dict:
@@ -25,14 +27,17 @@ def message_helper(message) -> dict:
 
 
 async def get_conversations_and_count_db(*, current_page: int, page_size: int, tags: list[str] = None,
-                                         search_query: str):
+                                         search_query: str = ''):
     conversations = []
-    pipeline = [{"$addFields": {"fullname": {"$concat": ["$last_name", " ", "$first_name"]}}}]
+    db_key = [("$addFields", {"fullname": {"$concat": ["$last_name", " ", "$first_name"]}}),
+              ("$match", {"tags": tags} if tags else ...),
+              ("$match", {"fullname": Regex(f".*{escape(search_query)}.*", "i")} if search_query else ...)]
+    pipeline = form_pipeline(db_key)
     total = await get_conversations_count_db(pipeline=pipeline[:])
     extra_stages = [
         {"$sort": SON([("last_active.sent_at", -1)])},
-        {"$skip": 0},
-        {"$limit": 10},
+        {"$skip": (current_page - 1) * page_size},
+        {"$limit": page_size},
         {"$lookup": {
             "from": "message",
             "localField": "last_active.sent_message_id",
@@ -75,7 +80,6 @@ async def get_conversations_and_count_db(*, current_page: int, page_size: int, t
     cursor = bot_user_collection.aggregate(pipeline)
 
     async for conversation in cursor:
-        print(conversation)
         conversations.append(ConversationBotUserSchema(**bot_user_helper(conversation)))
     return conversations, total
     # db_key = [(f"text.{language}", Regex(f".*{escape(question_text)}.*", "i") if question_text else ...)]
@@ -106,4 +110,5 @@ async def get_conversations_count_db(*, pipeline: list[dict]) -> int:
     pipeline.append({"$count": "total_count"})
     cursor = bot_user_collection.aggregate(pipeline)
     async for conversations in cursor:
-        return conversations['total_count']
+        total = conversations['total_count']
+        return total if total else 0

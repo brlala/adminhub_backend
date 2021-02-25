@@ -23,9 +23,10 @@ class AttachmentItem(BaseModel):
 
 
 class ButtonTypeEnum(str, Enum):
-    url = 'web_url'
-    flow = 'flow'
-    postback = 'postback'
+    URL = 'web_url'
+    FLOW = 'flow'
+    POSTBACK = 'postback'
+    PHONE = 'phone_number'
 
 
 class QuickReplyPayload(BaseModel):
@@ -777,6 +778,9 @@ class FlowTypeEnumOut(str, Enum):
     IMAGE = 'image'
     VIDEO = 'video'
     CUSTOM = 'custom'
+
+    # for conversation
+    POSTBACK = 'postback'
 
     # not supported yet on portal
     USER_ATTRIBUTE = 'user_attribute'

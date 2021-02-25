@@ -43,6 +43,7 @@ class BotUserSchemaDb(BaseModel):
     platforms: list[str]
     facebook: Optional[BotUserSchemaFacebook]
     fullname: str
+    tags: list[str]
 
 
 class ConversationBotUserSchema(BotUserSchemaDb):
