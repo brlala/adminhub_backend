@@ -67,6 +67,15 @@ def form_query(fields: list[tuple]) -> dict:
     return query
 
 
+def form_pipeline(fields: list[tuple]) -> list[dict]:
+    pipeline = []
+    for key, value in fields:
+        if value is not ...:
+            query = {key: value}
+            pipeline.append(query)
+    return pipeline
+
+
 def add_user_pipeline(source_field: str, destination_field: str) -> []:
     """
     # Retrieve the vlookup pipeline for portal user
