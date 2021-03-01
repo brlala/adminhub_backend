@@ -14,7 +14,7 @@ bot_user_collection = db.get_collection('bot_user', codec_options=codec_options)
 portal_user_group_collection = db.get_collection('portal_user_group', codec_options=codec_options)
 broadcast_template_collection = db.get_collection('broadcast_template', codec_options=codec_options)
 broadcast_collection = db.get_collection('broadcast', codec_options=codec_options)
-message_collection = db.get_collection('broadcast', codec_options=codec_options)
+message_collection = db.get_collection('message', codec_options=codec_options)
 
 # test
 student_user_collection = db['students_collection']

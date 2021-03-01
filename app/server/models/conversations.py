@@ -42,8 +42,12 @@ class BotUserSchemaDb(BaseModel):
     bot_user_group_id: Optional[str]
     platforms: list[str]
     facebook: Optional[BotUserSchemaFacebook]
-    fullname: str
+    fullname: Optional[str]
     tags: list[str]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
 
 
 class ConversationBotUserSchema(BotUserSchemaDb):
@@ -54,7 +58,25 @@ class ConversationBotUserSchema(BotUserSchemaDb):
         allow_population_by_field_name = True
 
 
+class ConversationMessageUserSchema(BaseModel):
+    convo_id: list[str]
+    last_message_date: datetime
+    user: BotUserSchemaDb
+    fullname: Optional[str]
+    convo_count: int
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
 class GetConversationsTable(BaseModel):
     data: list[ConversationBotUserSchema]
+    success: bool
+    total: int
+
+
+class GetConversationsMessageTable(BaseModel):
+    data: list[ConversationMessageUserSchema]
     success: bool
     total: int
