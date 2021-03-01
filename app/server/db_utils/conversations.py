@@ -2,28 +2,10 @@ from bson import SON, ObjectId
 
 from app.server.db.collections import bot_user_collection
 from app.server.db.collections import message_collection
+from app.server.db_utils.helper import message_helper, bot_user_helper
 from app.server.models.conversations import ConversationBotUserSchema, ConversationMessageUserSchema
-from app.server.models.flow import FlowTypeEnumOut
 from app.server.models.message import MessageSchemaDb
 from app.server.utils.common import clean_dict_helper, form_pipeline
-
-
-def bot_user_helper(bot_user) -> dict:
-    return {
-        **bot_user,
-        "id": str(bot_user["_id"]),
-        "last_active": clean_dict_helper(bot_user["last_active"]) if bot_user.get("last_active") else None,
-        "last_message": clean_dict_helper(message_helper(bot_user['last_message'])) if bot_user.get(
-            'last_message') else None
-    }
-
-
-def message_helper(message) -> dict:
-    message['type'] = str(FlowTypeEnumOut(message['type']))
-    return clean_dict_helper({
-        **message,
-        "id": str(message["_id"]),
-    })
 
 
 def convo_message_search_helper(message) -> dict:
