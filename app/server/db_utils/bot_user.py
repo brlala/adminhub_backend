@@ -25,3 +25,9 @@ async def get_bot_user_db(user_id: str) -> BotUserSchemaDb:
     """
     query = {"_id": ObjectId(user_id)}
     return BotUserSchemaDb(**bot_user_helper(await collection.find_one(query)))
+
+
+async def update_bot_user_db(user_id: str, *, tags: list[str]):
+    new_values = {"$set": {"tags": tags}}
+    result = await collection.update_one({"_id": ObjectId(user_id)}, new_values)
+    return f"Updated {result.modified_count} bot user."
