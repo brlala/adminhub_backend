@@ -8,7 +8,7 @@ from app.server.utils.common import to_camel
 
 
 class MessageChatbot(BaseModel):
-    convo_id: str
+    convo_id: Optional[str]
     flow_id: Optional[str]
 
     class Config:
@@ -29,23 +29,14 @@ class FlowComponentsConversationOut(FlowComponentsOut):
         allow_population_by_field_name = True
 
 
-class FlowComponentsConversationOut(FlowComponentsOut):
-    title: Optional[Any]
-    subtitle: Optional[Any]
-
-    class Config:
-        alias_generator = to_camel
-        allow_population_by_field_name = True
-
-
 class MessageSchemaDb(BaseModel):
     id: str
     type: str
     data: FlowComponentsOut
-    chatbot: MessageChatbot
+    chatbot: Optional[MessageChatbot]
     platform: str
     incoming_message_id: Optional[str]
-    sender_platform_id: str
+    sender_platform_id: Optional[str]
     receiver_platform_id: str
     abbr: Optional[str]
     sender_id: str
@@ -55,3 +46,9 @@ class MessageSchemaDb(BaseModel):
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
+
+
+class GetMessagesTable(BaseModel):
+    data: list[MessageSchemaDb]
+    success: bool
+    total: int

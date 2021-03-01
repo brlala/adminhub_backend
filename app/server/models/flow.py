@@ -28,6 +28,9 @@ class ButtonTypeEnum(str, Enum):
     POSTBACK = 'postback'
     PHONE = 'phone_number'
 
+    # deprecated
+    ELEMENT_SHARE = 'element_share'
+
 
 class QuickReplyPayload(BaseModel):
     flow_id: Optional[str] = Field(alias='flowId')
@@ -603,7 +606,7 @@ class QuickReplyPayloadOut(QuickReplyPayload):
 
 class ButtonItemOut(ButtonItem):
     payload: Optional[Union[QuickReplyPayloadOut, str]]
-    title: Union[str, dict]
+    title: Optional[Union[str, dict]]
     subtitle: Optional[Union[str, dict]]
 
     class Config:
@@ -622,7 +625,7 @@ class AttachmentItemOut(AttachmentItem):
 class GenericTemplateItemOut(GenericTemplateItem):
     buttons: list[ButtonItemOut]
     title: Union[str, dict]
-    subtitle: Union[str, dict]
+    subtitle: Optional[Union[str, dict]]
 
     class Config:
         alias_generator = to_camel
