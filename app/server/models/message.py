@@ -48,7 +48,47 @@ class MessageSchemaDb(BaseModel):
         allow_population_by_field_name = True
 
 
+class MessageNlpMatchedQuestionsQuestion(BaseModel):
+    score: float
+    question_text: str
+    question_topic: str
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class MessageNlpMatchedQuestions(BaseModel):
+    matched_questions: list[MessageNlpMatchedQuestionsQuestion]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class MessageNlp(BaseModel):
+    nlp_response: MessageNlpMatchedQuestions
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class MessageGradingSchemaDb(MessageSchemaDb):
+    nlp: Optional[MessageNlp]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
 class GetMessagesTable(BaseModel):
     data: list[MessageSchemaDb]
+    success: bool
+    total: int
+
+
+class GetGradingsTable(BaseModel):
+    data: list[MessageGradingSchemaDb]
     success: bool
     total: int

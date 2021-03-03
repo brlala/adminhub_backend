@@ -16,3 +16,13 @@ def bot_user_helper(bot_user) -> dict:
         "id": str(bot_user["_id"]),
         "last_message": message_helper(bot_user['last_message']) if bot_user.get('last_message') else None
     })
+
+
+def question_helper(question) -> dict:
+    return {
+        **question,
+        "id": str(question["_id"]),
+        "created_by": str(question["created_by"]),
+        "updated_by": str(question["updated_by"]),
+        "answers": clean_dict_helper(question["answers"])
+    }
