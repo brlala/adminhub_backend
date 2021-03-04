@@ -12,8 +12,14 @@ from app.server.db_utils.helper import question_helper
 from app.server.models.current_user import CurrentUserSchema
 from app.server.models.flow import NewFlow
 from app.server.models.question import QuestionSchemaDb, QuestionIn
-from app.server.utils.common import clean_dict_helper, form_query, RequestMethod
+from app.server.utils.common import form_query, RequestMethod
 from app.server.utils.timezone import make_timezone_aware, get_local_datetime_now
+
+
+async def get_question_one(_id: str) -> QuestionSchemaDb:
+    query = {"_id": ObjectId(_id)}
+    async for question in collection.find(query):
+        return QuestionSchemaDb(**question_helper(question))
 
 
 async def get_questions_db(*, current_page: int, page_size: int, sorter: str = None, query: dict) -> list[

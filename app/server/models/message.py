@@ -3,7 +3,7 @@ from typing import Optional, Union, Any
 
 from pydantic import BaseModel
 
-from app.server.models.flow import FlowComponentsOut, ButtonItemOut
+from app.server.models.flow import FlowComponentsOut, ButtonItemOut, FlowSchemaDbOut
 from app.server.utils.common import to_camel
 
 
@@ -50,6 +50,7 @@ class MessageSchemaDb(BaseModel):
 
 class MessageNlpMatchedQuestionsQuestion(BaseModel):
     score: float
+    question_id: str
     question_text: str
     question_topic: str
 
@@ -76,6 +77,8 @@ class MessageNlp(BaseModel):
 
 class MessageGradingSchemaDb(MessageSchemaDb):
     nlp: Optional[MessageNlp]
+    fullname: Optional[str]
+    answer_flow: Optional[FlowSchemaDbOut]
 
     class Config:
         alias_generator = to_camel
