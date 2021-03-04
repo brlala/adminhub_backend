@@ -13,7 +13,7 @@ from app.server.utils.timezone import get_local_datetime_now, make_timezone_awar
 
 
 def flow_helper(flow) -> dict:
-    for f in flow['flow']:
+    for f in flow.get('flow', []):
         f['type'] = str(FlowTypeEnumOut(f['type']))
     results = {
         **flow,
