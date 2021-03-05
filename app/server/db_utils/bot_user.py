@@ -1,6 +1,8 @@
-from bson import ObjectId, Regex
+from bson import ObjectId
 
 from app.server.db.collections import bot_user_collection as collection
+from app.server.db_utils.helper import bot_user_helper
+from app.server.models.bot_user import BotUserSchemaDb
 
 
 async def get_bot_user_tags_db() -> list:
@@ -14,3 +16,18 @@ async def get_bot_user_tags_db() -> list:
         return tags
     else:
         return []
+
+
+async def get_bot_user_db(user_id: str) -> BotUserSchemaDb:
+    """
+    # Retrieve the correct portal user
+    :return:
+    """
+    query = {"_id": ObjectId(user_id)}
+    return BotUserSchemaDb(**bot_user_helper(await collection.find_one(query)))
+
+
+async def update_bot_user_db(user_id: str, *, tags: list[str]):
+    new_values = {"$set": {"tags": tags}}
+    result = await collection.update_one({"_id": ObjectId(user_id)}, new_values)
+    return f"Updated {result.modified_count} bot user."

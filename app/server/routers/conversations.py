@@ -1,13 +1,11 @@
 from typing import Optional
 
-from fastapi import APIRouter, Query, Depends
+from fastapi import APIRouter, Query
 
-from ..db_utils.conversations import get_conversations_and_count_db
-from ..db_utils.questions import get_topics_db, add_question_db, remove_questions_db, \
-    edit_question_db
-from ..models.current_user import CurrentUserSchema
-from ..models.question import QuestionIn, DeleteQuestion
-from ..utils.security import get_current_active_user
+from ..db_utils.conversations import get_conversations_and_count_db, get_message_conversations_and_count_db, \
+    get_user_message_conversations_and_count_db, get_convo_conversations_and_count_db
+from ..models.conversations import GetConversationsTable, GetConversationsMessageTable
+from ..models.message import GetMessagesTable
 
 router = APIRouter(
     tags=["conversations"],
@@ -16,7 +14,7 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("/", response_model_exclude_none=True, response_model=GetConversationsTable)
 async def get_conversations(tags: Optional[list[str]] = Query(None),
                             search_query: Optional[str] = Query(None, alias="searchQuery"),
                             current_page: int = Query(1, alias="current"),
@@ -33,35 +31,49 @@ async def get_conversations(tags: Optional[list[str]] = Query(None),
     return result
 
 
-@router.post("/")
-async def add_question(question: QuestionIn, current_user: CurrentUserSchema = Depends(get_current_active_user)):
-    status = await add_question_db(question, current_user)
-    return {
-        "status": status,
+@router.get("/messages", response_model_exclude_none=True, response_model=GetConversationsMessageTable)
+async def get_conversations_message(search_query: Optional[str] = Query(None, alias="searchQuery"),
+                                    current_page: int = Query(1, alias="current"),
+                                    page_size: int = Query(20, alias="pageSize"),
+                                    ):
+    conversations, total = await get_message_conversations_and_count_db(current_page=current_page, page_size=page_size,
+                                                                        search_query=search_query)
+
+    result = {
+        "data": conversations,
         "success": True,
+        "total": total
     }
+    return result
 
 
-@router.delete("/")
-async def remove_questions(question: DeleteQuestion,
-                           current_user: CurrentUserSchema = Depends(get_current_active_user)):
-    status = await remove_questions_db(question.key, current_user)
-    return {
-        "status": status,
+@router.get("/users/{user_id}", response_model_exclude_none=True, response_model=GetMessagesTable)
+async def get_conversations_message(user_id: str = Query(None),
+                                    current_page: int = Query(1, alias="current"),
+                                    page_size: int = Query(20, alias="pageSize"),
+                                    ):
+    messages, total = await get_user_message_conversations_and_count_db(current_page=current_page, page_size=page_size,
+                                                                        user_id=user_id)
+
+    result = {
+        "data": messages,
         "success": True,
+        "total": total
     }
+    return result
 
 
-@router.put("/")
-async def edit_question(question: QuestionIn, current_user: CurrentUserSchema = Depends(get_current_active_user)):
-    status = await edit_question_db(question, current_user)
-    return {
-        "status": status,
+@router.get("/convos/{convo_id}", response_model_exclude_none=True, response_model=GetMessagesTable)
+async def get_conversations_message(convo_id: str = Query(None),
+                                    current_page: int = Query(1, alias="current"),
+                                    page_size: int = Query(20, alias="pageSize"),
+                                    ):
+    messages, total = await get_convo_conversations_and_count_db(current_page=current_page, page_size=page_size,
+                                                                 convo_id=convo_id)
+
+    result = {
+        "data": messages,
         "success": True,
+        "total": total
     }
-
-
-@router.get("/topics", response_model=list[str])
-async def get_topics():
-    topics = await get_topics_db()
-    return topics
+    return result

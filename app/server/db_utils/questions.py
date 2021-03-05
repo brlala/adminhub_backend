@@ -8,21 +8,18 @@ from bson import Regex, ObjectId
 from app.server.db.collections import flow_collection
 from app.server.db.collections import question_collection as collection
 from app.server.db_utils.flows import add_flows_to_db_from_question
+from app.server.db_utils.helper import question_helper
 from app.server.models.current_user import CurrentUserSchema
 from app.server.models.flow import NewFlow
 from app.server.models.question import QuestionSchemaDb, QuestionIn
-from app.server.utils.common import clean_dict_helper, form_query, RequestMethod
+from app.server.utils.common import form_query, RequestMethod
 from app.server.utils.timezone import make_timezone_aware, get_local_datetime_now
 
 
-def question_helper(question) -> dict:
-    return {
-        **question,
-        "id": str(question["_id"]),
-        "created_by": str(question["created_by"]),
-        "updated_by": str(question["updated_by"]),
-        "answers": clean_dict_helper(question["answers"])
-    }
+async def get_question_one(_id: str) -> QuestionSchemaDb:
+    query = {"_id": ObjectId(_id)}
+    async for question in collection.find(query):
+        return QuestionSchemaDb(**question_helper(question))
 
 
 async def get_questions_db(*, current_page: int, page_size: int, sorter: str = None, query: dict) -> list[

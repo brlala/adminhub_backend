@@ -1,10 +1,11 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.server.core.env_variables import local_config
 # from .internal import admin
 # from app.server.db.client import connect_to_mongo, close_mongo_connection, get_database
-from app.server.routers import items, users, students, login, questions, flows, bot, broadcasts, upload, conversations
-from app.server.core.env_variables import local_config
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
+from app.server.routers import items, users, students, login, questions, flows, bot, broadcasts, upload, conversations, \
+    bot_user, grading
 
 app = FastAPI()
 print(local_config.ALLOWED_HOSTS)
@@ -29,6 +30,10 @@ app.include_router(bot.router)
 app.include_router(broadcasts.router)
 app.include_router(upload.router)
 app.include_router(conversations.router)
+app.include_router(bot_user.router)
+app.include_router(grading.router)
+
+
 # app.include_router(test.router)
 # app.add_event_handler("shutdown", close_mongo_connection)
 # app.include_router(
