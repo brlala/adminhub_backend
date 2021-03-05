@@ -150,7 +150,7 @@ def convert_flow_buttons_to_object_id(flow: FlowItem):
                     b.payload.flow_id = ObjectId(b.payload.flow_id)
 
     # flow
-    if flow.data.flow.flow_id:
+    if flow.data.flow:
         flow.data.flow.flow_id = ObjectId(flow.data.flow.flow_id)
 
     # flow

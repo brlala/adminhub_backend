@@ -81,12 +81,16 @@ class TextComponent(BaseModel):
     text: Optional[dict]
 
 
-class FlowComponent(BaseModel):  # include file, video, image component
-    flow: Optional[QuickReplyPayload]
+class FlowFlow(BaseModel):
+    flow_id: Optional[str] = Field(alias='flowId')
     params: Optional[list[str]]
 
 
-class ButtonTemplateComponent(BaseModel):  # include file, video, image component
+class FlowComponent(BaseModel):
+    flow: Optional[FlowFlow]
+
+
+class ButtonTemplateComponent(BaseModel):
     text: Optional[dict]
     title: Optional[dict]
     buttons: Optional[list[ButtonItem]]
@@ -202,7 +206,7 @@ class FlowItem(BaseModel):
 class FlowItemCreateIn(BaseModel):
     name: Optional[str]
     flow: list[FlowItem]
-    is_active: Optional[bool] = Field(default_factory=True, alias='isActive')
+    is_active: Optional[bool] = Field(alias='isActive')
 
     class Config:
         schema_extra = {
@@ -343,7 +347,9 @@ class FlowItemCreateIn(BaseModel):
                             "flow": {
                                 "flowId": "5e315217a38e6703b4d3f81d",
                                 "params": [
-                            ]}
+
+                                ]
+                            }
                         }
                     },
                     {
@@ -675,13 +681,21 @@ class GenericTemplateComponentOut(GenericTemplateComponent):
 
 class TextComponentOut(TextComponent):
     text: Optional[Union[str, dict]]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class FlowFlowOut(FlowFlow):
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
 
 
 class FlowComponentOut(FlowComponent):
-    flow: Optional[QuickReplyPayloadOut]
+    flow: FlowFlowOut
+
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
