@@ -206,6 +206,7 @@ class FlowItem(BaseModel):
 class FlowItemCreateIn(BaseModel):
     name: Optional[str]
     flow: list[FlowItem]
+    is_active: Optional[bool] = Field(alias='isActive')
 
     class Config:
         schema_extra = {
@@ -840,6 +841,14 @@ class FlowSchemaDb(BaseModel):
 
 class FlowSchemaDbOut(FlowSchemaDb):
     flow: list[FlowItemOut]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class FlowResponse(BaseModel):
+    data: FlowSchemaDbOut
 
     class Config:
         alias_generator = to_camel

@@ -179,7 +179,7 @@ async def process_flow(flow: FlowItemCreateIn, current_user, *, method: RequestM
         "created_at": get_local_datetime_now(),
         "updated_by": ObjectId(current_user.userId),
         "type": 'storyboard',
-        "is_active": True,
+        "is_active": flow.is_active,
         "created_by": ObjectId(current_user.userId),
         "flow": [format_flow_to_database_format(f) for f in flow.flow]
     }
