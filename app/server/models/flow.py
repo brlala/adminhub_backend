@@ -694,7 +694,7 @@ class FlowFlowOut(FlowFlow):
 
 
 class FlowComponentOut(FlowComponent):
-    flow: FlowFlowOut
+    flow: Optional[FlowFlowOut]
 
     class Config:
         alias_generator = to_camel
