@@ -78,7 +78,7 @@ class TextComponent(BaseModel):
 
 
 class FlowComponent(BaseModel):  # include file, video, image component
-    flow_id: Optional[str] = Field(alias='flowId')
+    flow: Optional[QuickReplyPayload]
     params: Optional[list[str]]
 
 
@@ -198,6 +198,7 @@ class FlowItem(BaseModel):
 class FlowItemCreateIn(BaseModel):
     name: Optional[str]
     flow: list[FlowItem]
+    is_active: Optional[bool] = Field(default_factory=True, alias='isActive')
 
     class Config:
         schema_extra = {
@@ -335,10 +336,10 @@ class FlowItemCreateIn(BaseModel):
                     {
                         "type": "flow",
                         "data": {
-                            "flowId": "5e315217a38e6703b4d3f81d",
-                            "params": [
-
-                            ]
+                            "flow": {
+                                "flowId": "5e315217a38e6703b4d3f81d",
+                                "params": [
+                            ]}
                         }
                     },
                     {
@@ -676,6 +677,7 @@ class TextComponentOut(TextComponent):
 
 
 class FlowComponentOut(FlowComponent):
+    flow: Optional[QuickReplyPayloadOut]
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
@@ -818,6 +820,14 @@ class FlowSchemaDb(BaseModel):
 
 class FlowSchemaDbOut(FlowSchemaDb):
     flow: list[FlowItemOut]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class FlowResponse(BaseModel):
+    data: FlowSchemaDbOut
 
     class Config:
         alias_generator = to_camel

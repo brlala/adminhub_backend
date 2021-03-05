@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from ..db_utils.flows import get_flow_one, get_flows_filtered_field_list, get_flows_and_count_db, \
     add_flows_to_db_from_flow, remove_flow_db, edit_flow_db
 from ..models.current_user import CurrentUserSchema
-from ..models.flow import FlowSchemaDbOut, GetFlowsTable, FlowItemCreateIn, DeleteFlows, FlowItemEditIn
+from ..models.flow import FlowSchemaDbOut, GetFlowsTable, FlowItemCreateIn, DeleteFlows, FlowItemEditIn, FlowResponse
 from ..utils.security import get_current_active_user
 
 router = APIRouter(
@@ -53,10 +53,12 @@ async def get_flows(field: Optional[str] = None):
     return flows
 
 
-@router.get("/{flow_id}", response_model=FlowSchemaDbOut, response_model_exclude_none=True)
+@router.get("/{flow_id}", response_model=FlowResponse, response_model_exclude_none=True)
 async def get_flow(flow_id: str):
+    if flow_id == 'undefined':
+        return {'data': {}}
     flow = await get_flow_one(flow_id)
-    return flow
+    return {'data': flow}
 
 
 @router.post("/")

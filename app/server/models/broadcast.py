@@ -167,7 +167,7 @@ class BroadcastHistorySchemaDbOut(BaseModel):
     created_at: datetime
     created_by: PortalUserBasicSchemaOut
     flow_id: str
-    flow: list[FlowComponentOut]
+    flow: list[FlowItemOut]
     send_at: datetime
     status: str
     tags: list[str]

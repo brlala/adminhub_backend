@@ -13,7 +13,7 @@ from app.server.utils.timezone import get_local_datetime_now, make_timezone_awar
 
 
 def flow_helper(flow) -> dict:
-    for f in flow['flow']:
+    for f in flow.get('flow', []):
         f['type'] = str(FlowTypeEnumOut(f['type']))
     results = {
         **flow,
@@ -150,8 +150,8 @@ def convert_flow_buttons_to_object_id(flow: FlowItem):
                     b.payload.flow_id = ObjectId(b.payload.flow_id)
 
     # flow
-    if flow.data.flow_id:
-        flow.data.flow_id = ObjectId(flow.data.flow_id)
+    if flow.data.flow.flow_id:
+        flow.data.flow.flow_id = ObjectId(flow.data.flow.flow_id)
 
     # flow
     if flow.data.search:
@@ -179,7 +179,7 @@ async def process_flow(flow: FlowItemCreateIn, current_user, *, method: RequestM
         "created_at": get_local_datetime_now(),
         "updated_by": ObjectId(current_user.userId),
         "type": 'storyboard',
-        "is_active": True,
+        "is_active": flow.is_active,
         "created_by": ObjectId(current_user.userId),
         "flow": [format_flow_to_database_format(f) for f in flow.flow]
     }
