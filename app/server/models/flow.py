@@ -81,12 +81,16 @@ class TextComponent(BaseModel):
     text: Optional[dict]
 
 
-class FlowComponent(BaseModel):  # include file, video, image component
+class FlowFlow(BaseModel):
     flow_id: Optional[str] = Field(alias='flowId')
     params: Optional[list[str]]
 
 
-class ButtonTemplateComponent(BaseModel):  # include file, video, image component
+class FlowComponent(BaseModel):
+    flow: Optional[FlowFlow]
+
+
+class ButtonTemplateComponent(BaseModel):
     text: Optional[dict]
     title: Optional[dict]
     buttons: Optional[list[ButtonItem]]
@@ -339,10 +343,12 @@ class FlowItemCreateIn(BaseModel):
                     {
                         "type": "flow",
                         "data": {
-                            "flowId": "5e315217a38e6703b4d3f81d",
-                            "params": [
+                            "flow": {
+                                "flowId": "5e315217a38e6703b4d3f81d",
+                                "params": [
 
-                            ]
+                                ]
+                            }
                         }
                     },
                     {
@@ -674,12 +680,21 @@ class GenericTemplateComponentOut(GenericTemplateComponent):
 
 class TextComponentOut(TextComponent):
     text: Optional[Union[str, dict]]
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+class FlowFlowOut(FlowFlow):
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
 
 
 class FlowComponentOut(FlowComponent):
+    flow: FlowFlowOut
+
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
