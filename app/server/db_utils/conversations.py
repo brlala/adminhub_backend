@@ -97,7 +97,7 @@ def format_message_to_display(message: MessageSchemaDb) -> ConversationMessageDi
     else:
         text = 'Unsupported Message'
 
-    return ConversationMessageDisplay(**{"message": sender+text, "date": message.created_at})
+    return ConversationMessageDisplay(**{"message": sender+text, "created_at": message.created_at})
 
 
 async def get_message_conversations_and_count_db(*, current_page: int, page_size: int, search_query: str):

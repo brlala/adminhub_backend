@@ -51,7 +51,11 @@ class MessageSchemaDb(BaseModel):
 
 class ConversationMessageDisplay(BaseModel):
     message: str
-    date: datetime
+    created_at: datetime
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
 
 
 class MessageNlpMatchedQuestionsQuestion(BaseModel):
