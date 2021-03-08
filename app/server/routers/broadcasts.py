@@ -4,7 +4,7 @@ from fastapi import APIRouter, Query, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.server.models.current_user import CurrentUserSchema
-from ..db_utils.bot_user import get_bot_user_tags_db
+from ..db_utils.bot_user import get_bot_user_tags_db, get_bot_users_by_tags_db
 from ..db_utils.broadcasts import (get_broadcast_templates_list, get_broadcast_template_one, add_broadcast_template_db,
                                    validate_broadcast_template, update_broadcast_template_db,
                                    delete_broadcast_template_db, get_broadcast_history_list, get_broadcast_history_one,
@@ -114,6 +114,16 @@ async def get_broadcast_history(broadcast_id: str,
 async def get_user_tags(current_user: CurrentUserSchema = Depends(get_current_active_user)):
     tags = await get_bot_user_tags_db()
     return {'data': tags}
+
+
+@router.get("/users")
+async def get_user_tags(tags: Optional[list[str]] = Query([]),
+                        exclude: Optional[list[str]] = Query([]),
+                        toAll: Optional[bool] = Query(False),
+                        current_user: CurrentUserSchema = Depends(get_current_active_user)):
+    print(tags, exclude, toAll)
+    users = await get_bot_users_by_tags_db(tags, exclude, toAll)
+    return {'data': users}
 
 
 @router.post("/send")

@@ -2,7 +2,7 @@ from bson import ObjectId
 
 from app.server.db.collections import bot_user_collection as collection
 from app.server.db_utils.helper import bot_user_helper
-from app.server.models.bot_user import BotUserSchemaDb
+from app.server.models.bot_user import BotUserSchemaDb, BotUserBasicSchemaDb
 
 
 async def get_bot_user_tags_db() -> list:
@@ -16,6 +16,33 @@ async def get_bot_user_tags_db() -> list:
         return tags
     else:
         return []
+
+
+def bot_user_basic_information_helper(user: dict) -> dict:
+    name_list = []
+    if first_name := user["first_name"]:
+        name_list.append(first_name)
+    if last_name := user["last_name"]:
+        name_list.append(last_name)
+    if not name_list:
+        name_list.append(str(user["_id"]))
+    results = {
+        "name": ' '.join(name_list),
+        "id": str(user["_id"]),
+    }
+    return results
+
+
+async def get_bot_users_by_tags_db(tags: list[str], exclude: list[str], toAll: bool) -> list[BotUserBasicSchemaDb]:
+    """
+    # Retrieve the correct portal user
+    :return:
+    """
+    if toAll:
+        query = {"tags": {"$nin": exclude}}
+    else:
+        query = {"tags": {"$in": tags, "$nin": exclude}}
+    return [BotUserBasicSchemaDb(**bot_user_basic_information_helper(user)) async for user in collection.find(query)]
 
 
 async def get_bot_user_db(user_id: str) -> BotUserSchemaDb:

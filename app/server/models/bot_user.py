@@ -47,3 +47,12 @@ class BotUserSchemaDb(BaseModel):
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
+
+
+class BotUserBasicSchemaDb(BaseModel):
+    id: str
+    name: str
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True

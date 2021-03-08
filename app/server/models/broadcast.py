@@ -5,6 +5,7 @@ from enum import Enum
 from pydantic import Field
 from pydantic.main import BaseModel
 
+from app.server.models.bot_user import BotUserBasicSchemaDb
 from app.server.models.portal_user import PortalUserBasicSchemaOut
 from app.server.utils.common import to_camel
 
@@ -176,7 +177,9 @@ class BroadcastHistorySchemaDbOut(BaseModel):
     total: int
     sent: int
     processed: int
-    failed: Optional[list[str]]
+    failed: Optional[list[BotUserBasicSchemaDb]]
+    targets: Optional[list[BotUserBasicSchemaDb]]
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
+
