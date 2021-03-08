@@ -804,6 +804,7 @@ class FlowTypeEnumOut(str, Enum):
     # not supported yet on portal
     USER_ATTRIBUTE = 'user_attribute'
     ENTITY_SEARCH = 'entity_search'
+    STICKER = 'sticker'
 
     def __str__(self):
         if self.value == self.IMAGES:

@@ -39,6 +39,7 @@ class MessageSchemaDb(BaseModel):
     sender_platform_id: Optional[str]
     receiver_platform_id: str
     abbr: Optional[str]
+    handler: Optional[str]
     sender_id: str
     receiver_id: str
     created_at: datetime
@@ -46,6 +47,11 @@ class MessageSchemaDb(BaseModel):
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
+
+
+class ConversationMessageDisplay(BaseModel):
+    message: str
+    date: datetime
 
 
 class MessageNlpMatchedQuestionsQuestion(BaseModel):

@@ -4,7 +4,8 @@ from app.server.db.collections import bot_user_collection
 from app.server.db.collections import message_collection
 from app.server.db_utils.helper import message_helper, bot_user_helper
 from app.server.models.conversations import ConversationBotUserSchema, ConversationMessageUserSchema
-from app.server.models.message import MessageSchemaDb
+from app.server.models.flow import FlowTypeEnum
+from app.server.models.message import MessageSchemaDb, ConversationMessageDisplay
 from app.server.utils.common import clean_dict_helper, form_pipeline
 
 
@@ -69,8 +70,34 @@ async def get_conversations_and_count_db(*, current_page: int, page_size: int, t
     cursor = bot_user_collection.aggregate(pipeline)
 
     async for conversation in cursor:
-        conversations.append(ConversationBotUserSchema(**bot_user_helper(conversation)))
+        entry = ConversationBotUserSchema(**bot_user_helper(conversation))
+        if entry.last_message:
+            entry.last_message = format_message_to_display(entry.last_message)
+        conversations.append(entry)
     return conversations, total
+
+
+def format_message_to_display(message: MessageSchemaDb) -> ConversationMessageDisplay:
+    sender = ''
+    if message.handler != 'bot':
+        sender = 'Bot: '
+
+    if message.type == FlowTypeEnum.GENERIC_TEMPLATE:
+        text = '[Generic Template]'
+    elif message.type in [FlowTypeEnum.IMAGES, FlowTypeEnum.IMAGE]:
+        text = '[Image]'
+    elif message.type == FlowTypeEnum.FILE:
+        text = '[Attachment]'
+    elif message.type == FlowTypeEnum.BUTTON_TEMPLATE:
+        text = '[Button Template]'
+    elif message.type == FlowTypeEnum.MESSAGE:
+        text = message.data.text
+    elif message.type in [FlowTypeEnum.VIDEOS, FlowTypeEnum.VIDEO]:
+        text = '[Video]'
+    else:
+        text = 'Unsupported Message'
+
+    return ConversationMessageDisplay(**{"message": sender+text, "date": message.created_at})
 
 
 async def get_message_conversations_and_count_db(*, current_page: int, page_size: int, search_query: str):
