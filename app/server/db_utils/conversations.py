@@ -1,4 +1,6 @@
-from bson import SON, ObjectId
+from re import escape
+
+from bson import SON, ObjectId, Regex
 
 from app.server.db.collections import bot_user_collection
 from app.server.db.collections import message_collection
@@ -21,7 +23,10 @@ async def get_conversations_and_count_db(*, current_page: int, page_size: int, t
                                          search_query: str = ''):
     conversations = []
     db_key = [("$addFields", {"fullname": {"$concat": ["$last_name", " ", "$first_name"]}}),
-              ("$match", {"tags": tags} if tags else ...)]
+              ("$match", {"tags": {"$all": tags}} if tags else ...),
+              ("$match", {"fullname": Regex(f".*{escape(search_query)}.*", "i")} if search_query else ...),
+              ]
+
     pipeline = form_pipeline(db_key)
     total = await bot_user_pipeline_count(pipeline=pipeline[:])
     extra_stages = [
@@ -97,7 +102,7 @@ def format_message_to_display(message: MessageSchemaDb) -> ConversationMessageDi
     else:
         text = 'Unsupported Message'
 
-    return ConversationMessageDisplay(**{"message": sender+text, "created_at": message.created_at})
+    return ConversationMessageDisplay(**{"message": sender + text, "created_at": message.created_at})
 
 
 async def get_message_conversations_and_count_db(*, current_page: int, page_size: int, search_query: str):
