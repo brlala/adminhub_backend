@@ -108,7 +108,6 @@ def format_message_to_display(message: MessageSchemaDb) -> ConversationMessageDi
 async def get_message_conversations_and_count_db(*, current_page: int, page_size: int, search_query: str):
     conversations = []
     pipeline = [{"$match": {"$text": {"$search": f"\"{search_query}\"" if search_query else ''}}},
-                {"$sort": SON([("_id", -1)])},
                 {"$group": {"_id": "$sender_id",
                             "convo_id": {
                                 "$addToSet": "$chatbot.convo_id"
