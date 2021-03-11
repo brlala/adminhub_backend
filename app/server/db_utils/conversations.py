@@ -22,7 +22,7 @@ def convo_message_search_helper(message) -> dict:
 async def get_conversations_and_count_db(*, current_page: int, page_size: int, tags: list[str] = None,
                                          search_query: str = ''):
     conversations = []
-    db_key = [("$addFields", {"fullname": {"$concat": ["$last_name", " ", "$first_name"]}}),
+    db_key = [("$addFields", {"fullname": {"$concat": ["$first_name", " ", "$last_name"]}}),
               ("$match", {"tags": {"$all": tags}} if tags else ...),
               ("$match", {"fullname": Regex(f".*{escape(search_query)}.*", "i")} if search_query else ...),
               ]
@@ -125,7 +125,7 @@ async def get_message_conversations_and_count_db(*, current_page: int, page_size
                         "as": "user"}},
                     {"$unwind": {"path": "$user"}},
                     # {"$match": {"user.tags": tags}},
-                    {"$addFields": {"fullname": {"$concat": ["$user.last_name", " ", "$user.first_name"]},
+                    {"$addFields": {"fullname": {"$concat": ["$user.first_name", " ", "$user.last_name"]},
                                     "convo_count": {"$size": "$convo_id"}}}]
     pipeline.extend(extra_stages)
 
