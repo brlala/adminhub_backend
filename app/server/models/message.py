@@ -38,6 +38,7 @@ class MessageSchemaDb(BaseModel):
     incoming_message_id: Optional[str]
     sender_platform_id: Optional[str]
     receiver_platform_id: str
+    is_broadcast: str = False
     abbr: Optional[str]
     handler: Optional[str]
     sender_id: str

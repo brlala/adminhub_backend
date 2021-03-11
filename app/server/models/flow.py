@@ -642,6 +642,7 @@ class GenericTemplateItemOut(GenericTemplateItem):
 class QuickReplyItemOut(QuickReplyItem):
     payload: Union[QuickReplyPayloadOut, str]
     text: Optional[Union[str, dict]]
+    title: Optional[str]
 
     class Config:
         alias_generator = to_camel

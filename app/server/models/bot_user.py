@@ -26,6 +26,13 @@ class BotUserSchemaFacebook(BaseModel):
         alias_generator = to_camel
         allow_population_by_field_name = True
 
+class BotUserSchemaChatbot(BaseModel):
+    registration_date: Optional[datetime] = None
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
 
 class BotUserSchemaDb(BaseModel):
     id: str
@@ -42,7 +49,8 @@ class BotUserSchemaDb(BaseModel):
     platforms: list[str]
     facebook: Optional[BotUserSchemaFacebook]
     fullname: Optional[str]
-    tags: list[str]
+    tags: list[str] = []
+    chatbot: Optional[BotUserSchemaChatbot] = None
 
     class Config:
         alias_generator = to_camel
