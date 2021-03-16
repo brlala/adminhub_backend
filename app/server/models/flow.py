@@ -182,6 +182,7 @@ class FlowTypeEnum(str, Enum):
     INPUT = 'input'
     CUSTOM = 'custom'
     IMAGE = 'image'
+    AUDIO = 'audios'
     VIDEO = 'video'
 
     # not supported yet
@@ -795,6 +796,7 @@ class FlowTypeEnumOut(str, Enum):
     INPUT = 'input'
     IMAGE = 'image'
     VIDEO = 'video'
+    AUDIO = 'audios'
     CUSTOM = 'custom'
 
     # for conversation

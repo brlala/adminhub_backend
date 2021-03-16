@@ -48,7 +48,7 @@ async def get_flows(flow_name: Optional[str] = Query(None, alias="name"),
 
 
 @router.get("/fields")
-async def get_flows(field: Optional[str] = None):
+async def get_flows_filtered(field: Optional[str] = None):
     flows = await get_flows_filtered_field_list(field)
     return flows
 

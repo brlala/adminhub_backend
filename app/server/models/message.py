@@ -4,6 +4,7 @@ from typing import Optional, Union, Any
 from pydantic import BaseModel
 
 from app.server.models.flow import FlowComponentsOut, ButtonItemOut, FlowSchemaDbOut
+from app.server.models.question import QuestionSchemaDb
 from app.server.utils.common import to_camel
 
 
@@ -90,6 +91,7 @@ class MessageGradingSchemaDb(MessageSchemaDb):
     nlp: Optional[MessageNlp]
     fullname: Optional[str]
     answer_flow: Optional[FlowSchemaDbOut]
+    answer_question: Optional[QuestionSchemaDb]
 
     class Config:
         alias_generator = to_camel

@@ -43,6 +43,7 @@ async def get_grading_messages_and_count_db(topic: str, search_query: str, accur
             question = await get_question_one(qnid)
             for a in question.answers:
                 flow = await get_flow_one(a.flow['flow_id'])
+                message['answer_question'] = question
                 message['answer_flow'] = flow
         messages.append(MessageGradingSchemaDb(**message_helper(message)))
     return messages, total
