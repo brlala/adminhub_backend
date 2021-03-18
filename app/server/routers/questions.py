@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from ..db_utils.flows import get_flow_one
 from ..db_utils.questions import get_questions_and_count_db, get_topics_db, add_question_db, remove_questions_db, \
-    edit_question_db
+    edit_question_db, get_question_filtered_field_list
 from ..models.current_user import CurrentUserSchema
 from ..models.question import GetQuestionsTable, QuestionIn, DeleteQuestion
 from ..utils.common import Status
@@ -31,7 +31,7 @@ class CurrentUserParams(BaseModel):
         }
 
 
-@router.get("/", response_model=GetQuestionsTable)
+@router.get("/", response_model=GetQuestionsTable, response_model_exclude_none=True)
 async def get_questions(topic: Optional[str] = Query(None),
                         question_text: Optional[str] = Query(None, alias="questionText"),
                         created_at: Optional[datetime] = Query(None, alias="createdAt"),
@@ -99,3 +99,9 @@ async def edit_question(question: QuestionIn, current_user: CurrentUserSchema = 
 async def get_topics():
     topics = await get_topics_db()
     return topics
+
+
+@router.get("/fields")
+async def get_questions_filtered(field: Optional[str] = None):
+    flows = await get_question_filtered_field_list(field)
+    return flows

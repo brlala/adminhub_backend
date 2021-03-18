@@ -165,3 +165,20 @@ async def remove_questions_db(question_ids: list[str], current_user: CurrentUser
     query = {"_id": {"$in": linked_flows}, "name": {"$exists": False}, "is_active": True}
     result2 = await flow_collection.update_many(query, {'$set': set_query})
     return f"Removed {result1.modified_count} questions and {result2.modified_count} linked flows."
+
+
+def get_question_cursor(field=None):
+    projection = None
+    query = {"is_active": True}
+    if field:
+        projection = {f: 1 for f in field.split(',')}
+        projection['_id'] = 1
+    return query, projection
+
+
+async def get_question_filtered_field_list(field=None):
+    query, projection = get_question_cursor(field)
+    questions = []
+    async for question in collection.find(query, projection=projection):
+        questions.append(question_helper(question))
+    return questions

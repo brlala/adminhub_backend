@@ -30,9 +30,9 @@ class QuestionSchemaDbToBeImplement(BaseModel):
 class QuestionSchemaDb(QuestionSchemaDbToBeImplement):
     id: str
     created_at: datetime
-    created_by: str
+    created_by: Optional[str]  # TODO this should be null
     updated_at: datetime
-    updated_by: str
+    updated_by: Optional[str]  # TODO this should be null
     text: dict
     internal: bool
     keyword: Optional[list[str]]
@@ -48,9 +48,9 @@ class QuestionSchemaDb(QuestionSchemaDbToBeImplement):
             "example": {
                 "id": "5fe14e41d0c0a70910280174",
                 "created_at": datetime.now(),
-                "created_by": ObjectId("5e6217be51cc760b8677707e"),
+                "created_by": "5e6217be51cc760b8677707e",
                 "updated_at": datetime.now(),
-                "updated_by": ObjectId("5e6217be51cc760b8677707e"),
+                "updated_by": "5e6217be51cc760b8677707e",
                 "text": {
                     "EN": "Christmas e-card"
                 },
@@ -60,7 +60,7 @@ class QuestionSchemaDb(QuestionSchemaDbToBeImplement):
                     {
                         "id": "1",
                         "flow": {
-                            "flow_id": ObjectId("5fe14d8dd0c0a7091028015c")
+                            "flow_id": "5fe14d8dd0c0a7091028015c"
                         },
                         "bot_user_group": "1"
                     }
