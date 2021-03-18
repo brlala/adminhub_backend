@@ -1,3 +1,5 @@
+Backend serving an administration portal.
+
 This project is developed using FastAPI for the added benefits of:
 1. Model verification
 2. Faster response as compared to Django and Flask, even more lightweight
