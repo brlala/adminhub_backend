@@ -124,8 +124,10 @@ class OperatorTypeEnum(str, Enum):
     MORE = '>'
     LESS = '<'
     EQUAL = '='
+    NOT_EQUAL = '!='
     MORE_THAN_OR_EQUAL = '>='
     LESS_THAN_OR_EQUAL = '<='
+    IN = 'in'
     CONTAINS = 'contains'
 
 

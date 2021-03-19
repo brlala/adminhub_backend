@@ -1,7 +1,6 @@
 from datetime import date
-from re import escape
 
-from bson import Regex, ObjectId
+from bson import ObjectId
 
 from app.server.db.collections import message_collection as collection
 from app.server.db_utils.bot_user import get_bot_user_db
@@ -22,23 +21,34 @@ async def get_grading_messages_and_count_db(topic: str, search_query: str, accur
 
     if question_status == 'Unanswered':
         db_key = [
-            ("data.text", Regex(f".*{escape(search_query)}.*", "i") if search_query else ...),
+            ("$text", {"$search": f"\"{search_query}\""} if search_query else ...),
+            ("handler", "bot"),
+            ("type", "message"),
             ("chatbot.unanswered", True),
-            ("adminportal", {"$exists": False}),
+            ("adminportal.graded", None),
             ("created_at", {"$gte": question_start, "$lte": question_end} if since else ...)
         ]
     elif question_status == 'Answered':
         db_key = [
-            ("data.text", Regex(f".*{escape(search_query)}.*", "i") if search_query else ...),
+            ("$text", {"$search": f"\"{search_query}\""} if search_query else ...),
             ("nlp.nlp_response.matched_questions.0.question_topic", topic if topic else ...),
-            ("nlp.nlp_response.matched_questions.0.score", {"$gte": accuracy[0] / 100, "$lte": accuracy[1] / 100} if accuracy else ...),
+            ("handler", "bot"),
+            ("type", "message"),
+            ("nlp", {"$ne": None}),
+            ("chatbot.qnid", {"$ne": None}),
+            ("nlp.nlp_response.matched_questions.0.score",
+             {"$gte": accuracy[0] / 100, "$lte": accuracy[1] / 100} if accuracy else ...),
             ("created_at", {"$gte": question_start, "$lte": question_end} if since else ...)
         ]
     else:
         db_key = [
-            ("data.text", Regex(f".*{escape(search_query)}.*", "i") if search_query else ...),
+            ("$text", {"$search": f"\"{search_query}\""} if search_query else ...),
             ("nlp.nlp_response.matched_questions.0.question_topic", topic if topic else ...),
-            ("nlp.nlp_response.matched_questions.0.score", {"$gte": accuracy[0] / 100, "$lte": accuracy[1] / 100} if accuracy else ...),
+            ("handler", "bot"),
+            ("type", "message"),
+            ("nlp", {"$ne": None}),
+            ("nlp.nlp_response.matched_questions.0.score",
+             {"$gte": accuracy[0] / 100, "$lte": accuracy[1] / 100} if accuracy else ...),
             ("created_at", {"$gte": question_start, "$lte": question_end} if since else ...)
         ]
     query = form_query(db_key)
@@ -62,6 +72,16 @@ async def get_grading_messages_and_count_db(topic: str, search_query: str, accur
                     flow = await get_flow_one(a.flow['flow_id'])
                     message['answer_question'] = question
                     message['answer_flow'] = flow
+        elif qns := message.get('nlp', {}).get('nlp_response', {}).get('matched_questions',
+                                                                       {}):  # get first matched question if it does not have qnid(
+            if len(qns) > 0:
+                question = await get_question_one(qns[0]['question_id'])
+                if question:
+                    for a in question.answers:
+                        flow = await get_flow_one(a.flow['flow_id'])
+                        message['answer_question'] = question
+                        message['answer_flow'] = flow
+
         messages.append(MessageGradingSchemaDb(**message_helper(message)))
     return messages, total
 
@@ -72,7 +92,8 @@ async def skip_message_db(message: SkipMessage, current_user: CurrentUserSchema)
     set_query = {
         "updated_at": get_local_datetime_now(),
         "updated_by": ObjectId(current_user.userId),
-        "adminportal.skip": True
+        "adminportal.graded": True,
+        "adminportal.answer": None
     }
     result = await collection.update_one(query, {'$set': set_query})
 

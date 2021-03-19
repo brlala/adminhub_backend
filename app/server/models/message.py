@@ -80,7 +80,7 @@ class MessageNlpMatchedQuestions(BaseModel):
 
 
 class MessageNlp(BaseModel):
-    nlp_response: MessageNlpMatchedQuestions
+    nlp_response: MessageNlpMatchedQuestions = []
 
     class Config:
         alias_generator = to_camel
