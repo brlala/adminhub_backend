@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, Union, Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.server.models.flow import FlowComponentsOut, ButtonItemOut, FlowSchemaDbOut
 from app.server.models.question import QuestionSchemaDb
@@ -108,3 +108,7 @@ class GetGradingsTable(BaseModel):
     data: list[MessageGradingSchemaDb]
     success: bool
     total: int
+
+
+class SkipMessage(BaseModel):
+    id: str = Field(alias='messageId')

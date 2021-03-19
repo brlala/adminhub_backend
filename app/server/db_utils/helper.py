@@ -19,10 +19,14 @@ def bot_user_helper(bot_user) -> dict:
 
 
 def question_helper(question) -> dict:
-    return {
+    # return {
+    #     **question,
+    #     "id": str(question["_id"]),
+    #     "created_by": str(question["created_by"]) if question.get('created_by') else None,
+    #     "updated_by": str(question["updated_by"]) if question.get('updated_by') else None,
+    #     "answers": clean_dict_helper(question["answers"]) if question.get('answers') else None
+    # }
+    return clean_dict_helper({
         **question,
         "id": str(question["_id"]),
-        "created_by": str(question["created_by"]),
-        "updated_by": str(question["updated_by"]),
-        "answers": clean_dict_helper(question["answers"])
-    }
+    })
