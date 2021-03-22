@@ -30,29 +30,29 @@ async def get_conversations_and_count_db(*, current_page: int, page_size: int, t
     pipeline = form_pipeline(db_key)
     total = await bot_user_pipeline_count(pipeline=pipeline[:])
     extra_stages = [
-        {"$sort": SON([("last_active.sent_at", -1)])},
+        {"$sort": SON([("last_active.received_at", -1)])},
         {"$skip": (current_page - 1) * page_size},
         {"$limit": page_size},
         {"$lookup": {
             "from": "message",
-            "localField": "last_active.sent_message_id",
+            "localField": "last_active.received_message_id",
             "foreignField": "_id",
-            "as": "message"}},
+            "as": "last_message"}},
         {"$unwind": {
-            "path": "$message",
+            "path": "$last_message",
             "preserveNullAndEmptyArrays": False
         }},
-        {"$lookup": {
-            "from": "message",
-            "localField": "message.chatbot.convo_id",
-            "foreignField": "chatbot.convo_id",
-            "as": "conversations"
-        }},
-        {"$addFields": {
-            "last_message": {
-                "$last": "$conversations"
-            }
-        }},
+        # {"$lookup": {
+        #     "from": "message",
+        #     "localField": "message.chatbot.convo_id",
+        #     "foreignField": "chatbot.convo_id",
+        #     "as": "conversations"
+        # }},
+        # {"$addFields": {
+        #     "last_message": {
+        #         "$last": "$conversations"
+        #     }
+        # }},
         {"$project": {
             "_id": 1,
             "fullname": 1,
