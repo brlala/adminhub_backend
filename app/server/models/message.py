@@ -11,6 +11,7 @@ from app.server.utils.common import to_camel
 class MessageChatbot(BaseModel):
     convo_id: Optional[str]
     flow_id: Optional[str]
+    qnid: Optional[str]
 
     class Config:
         alias_generator = to_camel
@@ -80,7 +81,15 @@ class MessageNlpMatchedQuestions(BaseModel):
 
 
 class MessageNlp(BaseModel):
-    nlp_response: MessageNlpMatchedQuestions
+    nlp_response: MessageNlpMatchedQuestions = []
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+class MessageAdminportal(BaseModel):
+    graded: Optional[str]
+    answer: Optional[str]
 
     class Config:
         alias_generator = to_camel
@@ -92,6 +101,7 @@ class MessageGradingSchemaDb(MessageSchemaDb):
     fullname: Optional[str]
     answer_flow: Optional[FlowSchemaDbOut]
     answer_question: Optional[QuestionSchemaDb]
+    adminportal: Optional[MessageAdminportal]
 
     class Config:
         alias_generator = to_camel
@@ -112,3 +122,9 @@ class GetGradingsTable(BaseModel):
 
 class SkipMessage(BaseModel):
     id: str = Field(alias='messageId')
+
+
+class UpdateMessageResponse(BaseModel):
+    new_response: str = Field(alias='messageResponse')
+    id: str = Field(alias='messageId')
+    text: str = Field(alias='messageText')
