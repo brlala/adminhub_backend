@@ -175,13 +175,13 @@ class FlowComponents(AttachmentItemComponent, GenericTemplateComponent, TextComp
 
 class FlowTypeEnum(str, Enum):
     GENERIC_TEMPLATE = 'genericTemplate'
-    IMAGES = 'imageAttachment'
+    IMAGES = 'images'
     FILE = 'file'
     FILES = 'files'
     BUTTON_TEMPLATE = 'buttonTemplate'
     FLOW = 'flow'
     MESSAGE = 'message'
-    VIDEOS = 'videoAttachment'
+    VIDEOS = 'videos'
     INPUT = 'input'
     CUSTOM = 'custom'
     IMAGE = 'image'
@@ -813,9 +813,9 @@ class FlowTypeEnumOut(str, Enum):
 
     def __str__(self):
         if self.value == self.IMAGES:
-            return 'imageAttachment'
+            return 'images'
         elif self.value == self.VIDEOS:
-            return 'videoAttachment'
+            return 'videos'
         return stringcase.camelcase(self.value)
 
 
