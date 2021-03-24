@@ -5,7 +5,7 @@ from app.server.core.env_variables import local_config
 # from .internal import admin
 # from app.server.db.client import connect_to_mongo, close_mongo_connection, get_database
 from app.server.routers import items, users, students, login, questions, flows, bot, broadcasts, upload, conversations, \
-    bot_user, grading
+    bot_user, grading, dashboard
 
 app = FastAPI()
 print(local_config.ALLOWED_HOSTS)
@@ -32,6 +32,7 @@ app.include_router(upload.router)
 app.include_router(conversations.router)
 app.include_router(bot_user.router)
 app.include_router(grading.router)
+app.include_router(dashboard.router)
 
 
 # app.include_router(test.router)

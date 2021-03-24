@@ -9,7 +9,6 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-
 fake_items_db = {"plumbus": {"name": "Plumbus"}, "gun": {"name": "Portal Gun"}}
 
 
