@@ -2,7 +2,8 @@ from bson import ObjectId
 
 from app.server.db.collections import bot_user_collection as collection
 from app.server.db_utils.helper import bot_user_helper
-from app.server.models.bot_user import BotUserSchemaDb, BotUserBasicSchemaDb
+from app.server.models.bot_user import BotUserSchemaDb, BotUserBasicSchemaDb, BotUserUpdateModel
+from app.server.utils.common import form_query
 
 
 async def get_bot_user_tags_db() -> list:
@@ -54,7 +55,10 @@ async def get_bot_user_db(user_id: str) -> BotUserSchemaDb:
     return BotUserSchemaDb(**bot_user_helper(await collection.find_one(query)))
 
 
-async def update_bot_user_db(user_id: str, *, tags: list[str]):
-    new_values = {"$set": {"tags": tags}}
+async def update_bot_user_db(user_id: str, update: BotUserUpdateModel):
+    db_key = [("tags", update.tags if update.tags else ...),
+              ("chatbot.notes", update.note if update.note else ...)]
+    query = form_query(db_key)
+    new_values = {"$set": query}
     result = await collection.update_one({"_id": ObjectId(user_id)}, new_values)
     return f"Updated {result.modified_count} bot user."

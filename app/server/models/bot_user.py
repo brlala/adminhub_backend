@@ -26,6 +26,7 @@ class BotUserSchemaFacebook(BaseModel):
         alias_generator = to_camel
         allow_population_by_field_name = True
 
+
 class BotUserSchemaChatbot(BaseModel):
     registration_date: Optional[datetime] = None
 
@@ -64,3 +65,19 @@ class BotUserBasicSchemaDb(BaseModel):
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
+
+
+class BotUserUpdateModel(BaseModel):
+    tags: Optional[list[str]]
+    note: Optional[str]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "tags": [
+                    "Tester",
+                    "Staff"
+                ],
+                "note": "2"
+            }
+        }

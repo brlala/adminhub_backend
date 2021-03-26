@@ -41,9 +41,6 @@ async def read_user(username: str):
 #     return {"access_token": access_token, "token_type": "bearer"}
 
 
-
-
-
 @router.get("/users/me/items/", tags=["users"])
 async def read_own_items(current_user: User = Depends(get_current_active_user)):
     return [{"item_id": "Foo", "owner": current_user.username}]
