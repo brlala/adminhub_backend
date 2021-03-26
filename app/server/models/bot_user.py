@@ -29,6 +29,7 @@ class BotUserSchemaFacebook(BaseModel):
 
 class BotUserSchemaChatbot(BaseModel):
     registration_date: Optional[datetime] = None
+    note: str = ''
 
     class Config:
         alias_generator = to_camel

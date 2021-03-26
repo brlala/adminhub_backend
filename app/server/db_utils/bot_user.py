@@ -57,7 +57,7 @@ async def get_bot_user_db(user_id: str) -> BotUserSchemaDb:
 
 async def update_bot_user_db(user_id: str, update: BotUserUpdateModel):
     db_key = [("tags", update.tags if update.tags else ...),
-              ("chatbot.notes", update.note if update.note else ...)]
+              ("chatbot.note", update.note if update.note else ...)]
     query = form_query(db_key)
     new_values = {"$set": query}
     result = await collection.update_one({"_id": ObjectId(user_id)}, new_values)
