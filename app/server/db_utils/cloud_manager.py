@@ -3,16 +3,17 @@ Manager for all operations related to cloud services. Eg. Uploading files to S3 
 All related helpers should go here.
 """
 import logging
-import mimetypes
 import os
 import sys
 import threading
+from typing import Union
 from urllib.parse import quote
 
 import boto3
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
 
 from app.server.core.env_variables import local_config
+from app.server.utils.common import FileBytesIO
 
 
 class ProgressPercentage(object):
@@ -38,7 +39,8 @@ class ProgressPercentage(object):
             sys.stdout.flush()
 
 
-async def upload_file_implementation(file: UploadFile, *, folder: str = None, new_filename: str = None) -> str:
+async def upload_file_implementation(file: Union[UploadFile, FileBytesIO], *, folder: str = None,
+                                     new_filename: str = None) -> str:
     """
     Upload a file to a bucket
     <call method> upload_file_implementation(file, , bucket_path='temporary/data')
@@ -119,7 +121,7 @@ async def upload_file_aws(file: UploadFile, bucket_name: str, file_path: str) ->
     except Exception as e:
         print('error')
         logging.error(e)
-        return False
+        raise HTTPException(status_code=404, detail=f'Upload fail with {file.filename} ({file.content_type})')
     return True
 #
 #

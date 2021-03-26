@@ -118,3 +118,10 @@ def get_current_app() -> FastAPI:
     # TODO: cache this
     app = resolve_dotted_path(settings.fastapi_app)
     return app
+
+
+class FileBytesIO:
+    def __init__(self, bytes, *, filename, content_type):
+        self.file = bytes
+        self.content_type = content_type
+        self.filename = filename
