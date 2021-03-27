@@ -63,7 +63,7 @@ async def get_grading_messages_and_count_db(topic: str, search_query: str, accur
     async for message in cursor:
         user = await get_bot_user_db(message['sender_id'])
         try:
-            message['fullname'] = f"{user.first_name} {user.last_name}"
+            message['fullname'] = f"{user.first_name} {user.last_name}".strip()
         except:
             message['fullname'] = 'User'
 
