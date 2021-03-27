@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 
 from fastapi import APIRouter, Query, Depends
@@ -35,7 +35,7 @@ class CurrentUserParams(BaseModel):
 async def get_questions(topic: Optional[str] = Query(None),
                         question_text: Optional[str] = Query(None, alias="questionText"),
                         created_at: Optional[datetime] = Query(None, alias="createdAt"),
-                        updated_at: Optional[list[datetime]] = Query(None, alias="updatedAt"),
+                        updated_at: Optional[list[date]] = Query(None, alias="updatedAt"),
                         sort_by: str = Query(None, alias="sortBy"),
                         current_page: int = Query(1, alias="current"),
                         page_size: int = Query(20, alias="pageSize"),

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 
 from fastapi import APIRouter, Query, Depends
@@ -31,7 +31,7 @@ class CurrentUserParams(BaseModel):
 @router.get("/", response_model=GetFlowsTable, response_model_exclude_none=True)
 async def get_flows(flow_name: Optional[str] = Query(None, alias="name"),
                     created_at: Optional[datetime] = Query(None, alias="createdAt"),
-                    updated_at: Optional[list[datetime]] = Query(None, alias="updatedAt"),
+                    updated_at: Optional[list[date]] = Query(None, alias="updatedAt"),
                     current_page: int = Query(1, alias="current"), page_size: int = Query(20, alias="pageSize"),
                     triggered_counts: list[int] = Query(None, alias="triggeredCount"),
                     sort_by: str = Query(None, alias="sortBy"), language: str = 'EN'):

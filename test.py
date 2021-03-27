@@ -1,3 +1,6 @@
+import random
+
+from bson import ObjectId
 from pymongo import MongoClient
 
 client = MongoClient(
@@ -5,22 +8,18 @@ client = MongoClient(
 database = client["adminhub"]
 question_collection = database["question"]
 message_collection = database["message"]
+flow_collection = database["flow"]
 
 query = {}
-#
+
 # # add triggered count
 # cursor = question_collection.find({})
 # for q in cursor:
-#     collection.update_one({"_id": q['_id']}, {"$set": {"triggered_count": random.randint(1000, 5000)}})
-#
-# # NOT USED
-# cursor = message_collection.find({}, sort=[(u"_id", -1)])
+#     question_collection.update_one({"_id": q['_id']}, {"$set": {"triggered_count": random.randint(1000, 5000)}})
+# # add triggered count(flow)
+# cursor = flow_collection.find({})
 # for q in cursor:
-#     try:
-#         if q['nlp']['nlp_response']['matched_questions'][0]['score']:
-#             message_collection.update_one({"_id": q['_id']}, {
-#                 "$set": {"chatbot.score": q['nlp']['nlp_response']['matched_questions'][0]['score'],
-#                          "chatbot.topic": q['nlp']['nlp_response']['matched_questions'][0]['topic'],
-#                          "chatbot.text": q['nlp']['nlp_response']['matched_questions'][0]['question_text'], }})
-#     except:
-#         pass
+#     flow_collection.update_one({"_id": q['_id']}, {"$set": {"triggered_count": random.randint(300, 5000)}})
+# add handler
+message_collection.update_many({"receiver_id": ObjectId('5c78f794df78b45f7f8c6a5e')}, {"$set": {"handler": 'bot'}})
+message_collection.update_many({"sender_id": ObjectId('5c78f794df78b45f7f8c6a5e')}, {"$set": {"handler": 'user'}})

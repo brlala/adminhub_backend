@@ -841,6 +841,7 @@ class FlowSchemaDb(BaseModel):
     type: str
     platforms: Optional[list[str]]
     params: Optional[list[str]]
+    triggered_count: Optional[int]
 
 
 class FlowSchemaDbOut(FlowSchemaDb):
