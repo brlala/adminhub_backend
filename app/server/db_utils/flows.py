@@ -73,17 +73,19 @@ async def get_flows_count_db(*, query: dict) -> int:
     return await count
 
 
-async def get_flows_filtered_field_list(field=None):
-    query, projection = get_flows_cursor(field)
+async def get_flows_filtered_field_list(field=None, name=None):
+    query, projection = get_flows_cursor(field, name)
     flows = []
     async for flow in collection.find(query, projection=projection):
         flows.append(flow_helper(flow))
     return flows
 
 
-def get_flows_cursor(field=None):
+def get_flows_cursor(field, name):
     projection = None
-    query = {"is_active": True, "name": {"$ne": None}}
+    db_key = [("is_active", True),
+              ("name", Regex(f".*{escape(name)}.*", "i") if name else {"$ne": None})]
+    query = form_query(db_key)
     if field:
         projection = {f: 1 for f in field.split(',')}
     return query, projection
