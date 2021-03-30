@@ -63,7 +63,10 @@ def form_query(fields: list[tuple]) -> dict:
     query = {}
     for key, value in fields:
         if value is not ...:
-            query[key] = value
+            if key in query:
+                query[key] |= value
+            else:
+                query[key] = value
     return query
 
 
