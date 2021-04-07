@@ -3,6 +3,7 @@ from datetime import date
 from fastapi import APIRouter, Query
 
 from app.server.db_utils.dashboard.summary import Dashboard, DashboardSummary
+from app.server.db_utils.dashboard.top_search import question_ranking
 
 Message = Dashboard(DashboardSummary.MESSAGE)
 User = Dashboard(DashboardSummary.USER)
@@ -87,17 +88,10 @@ async def get_conversations():
 #     return res
 
 @router.get("/bottom-part/top-questions")
-async def top_question(since: list[date] = Query(None), language: str = Query("EN")):
-    weekly_trend_percentage, weekly_trend_target = await Conversation.get_weekly_trend()
-    monthly_trend_percentage, monthly_trend_target = await Conversation.get_monthly_trend()
+async def top_question():
+    data, total_model, average_model = await question_ranking()
     res = {
-        "data": [
-            {
-                "question"
-                "count"
-                "range"
-            }
-        ],
+        "data": {"table": data, "total": total_model, "average": average_model},
         "status": True
     }
     return res

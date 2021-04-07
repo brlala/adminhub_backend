@@ -14,4 +14,4 @@ stringcase==1.2.0
 pymongo==3.11.3
 requests==2.25.1
 starlette~=0.13.6
-boto3~=1.17.39
+boto3~=1.17.46
