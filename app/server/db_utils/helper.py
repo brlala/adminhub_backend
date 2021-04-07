@@ -30,3 +30,10 @@ def question_helper(question) -> dict:
         **question,
         "id": str(question["_id"]),
     })
+
+
+def common_helper(item) -> dict:
+    return clean_dict_helper({
+        **item,
+        "id": str(item["_id"]),
+    })

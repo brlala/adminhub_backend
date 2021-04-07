@@ -20,17 +20,6 @@ router = APIRouter(
 )
 
 
-class CurrentUserParams(BaseModel):
-    token: str
-
-    class Config:
-        schema_extra = {
-            "example": {
-                "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZ…0OTJ9.rJ1WAF80i1EltnxAlfQI1PLJ9xrHH6qsw5Eeju9qB_w"
-            }
-        }
-
-
 @router.get("/", response_model=GetQuestionsTable, response_model_exclude_none=True)
 async def get_questions(topic: Optional[str] = Query(None),
                         question_text: Optional[str] = Query(None, alias="questionText"),

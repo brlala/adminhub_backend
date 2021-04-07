@@ -13,6 +13,5 @@ def bot_helper(bot):
 
 async def get_bot_db(abbr: str) -> BotSchemaDb:
     query = {"abbreviation": abbr, "is_active": True}
-    print(query)
     async for bot in bot_collection.find(query):
         return BotSchemaDb(**bot_helper(bot))

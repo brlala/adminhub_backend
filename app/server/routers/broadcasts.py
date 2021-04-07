@@ -1,7 +1,6 @@
 from typing import Optional
 
 from fastapi import APIRouter, Query, Depends, HTTPException
-from pydantic import BaseModel
 
 from app.server.models.current_user import CurrentUserSchema
 from ..db_utils.bot_user import get_bot_user_tags_db, get_bot_users_by_tags_db
@@ -19,17 +18,6 @@ router = APIRouter(
     prefix='/broadcasts',
     responses={404: {"description": "Not found"}},
 )
-
-
-class CurrentUserParams(BaseModel):
-    token: str
-
-    class Config:
-        schema_extra = {
-            "example": {
-                "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZ…0OTJ9.rJ1LJ9xrHH6qsw5Eeju9qB_w"
-            }
-        }
 
 
 @router.get("/templates")
@@ -119,10 +107,9 @@ async def get_user_tags(current_user: CurrentUserSchema = Depends(get_current_ac
 @router.get("/users")
 async def get_user_tags(tags: Optional[list[str]] = Query([]),
                         exclude: Optional[list[str]] = Query([]),
-                        toAll: Optional[bool] = Query(False),
+                        to_all: Optional[bool] = Query(False, alias="toAll"),
                         current_user: CurrentUserSchema = Depends(get_current_active_user)):
-    print(tags, exclude, toAll)
-    users = await get_bot_users_by_tags_db(tags, exclude, toAll)
+    users = await get_bot_users_by_tags_db(tags, exclude, to_all)
     return {'data': users}
 
 
