@@ -1,9 +1,9 @@
-from datetime import date
+from datetime import datetime
 
 from fastapi import APIRouter, Query
 
 from app.server.db_utils.dashboard.summary import Dashboard, DashboardSummary
-from app.server.db_utils.dashboard.top_search import question_ranking
+from app.server.db_utils.dashboard.top_search import question_ranking, top_topics_of_week, get_word_cloud
 
 Message = Dashboard(DashboardSummary.MESSAGE)
 User = Dashboard(DashboardSummary.USER)
@@ -88,10 +88,34 @@ async def get_conversations():
 #     return res
 
 @router.get("/bottom-part/top-questions")
-async def top_question():
-    data, total_model, average_model = await question_ranking()
+async def top_question(sort_by: str = Query(None, alias="sortBy")):
+    today = datetime.now()
+    # today = datetime(2020, 4, 12)
+    data, total_model, average_model = await question_ranking(today, sorter=sort_by)
     res = {
         "data": {"table": data, "total": total_model, "average": average_model},
+        "status": True
+    }
+    return res
+
+@router.get("/bottom-part/top-topics")
+async def top_question():
+    today = datetime.now()
+    today = datetime(2020, 4, 1)
+    data = await top_topics_of_week(today)
+    res = {
+        "data": data,
+        "date": today,
+        "status": True
+    }
+    return res
+
+@router.get("/bottom-part/word-cloud")
+async def word_cloud():
+    today = datetime.now()
+    today = datetime(2020, 4, 1)
+    res = {
+        "data": await get_word_cloud(today),
         "status": True
     }
     return res
