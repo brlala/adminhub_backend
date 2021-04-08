@@ -281,3 +281,4 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+/app/server/routers/word_cloud/stop_words.py
