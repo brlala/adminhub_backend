@@ -72,7 +72,8 @@ class Dashboard:
 
         now = datetime.now()
         count_now = await self.dashboard_summary.get_count(start=end_of_last_month, end=now)
-        return count_now / count_last_month, (count_now, count_last_month)
+        normalized_count = (count_now / date.today().day) * 30
+        return (normalized_count / count_last_month) - 1, (count_now, count_last_month)
 
     async def get_weekly_trend(self) -> (float, str):
         today = date.today()
@@ -83,7 +84,8 @@ class Dashboard:
 
         now = datetime.now()
         count_now = await self.dashboard_summary.get_count(start=monday_of_this_week, end=now)
-        return count_now / count_last_week, (count_now, count_last_week)
+        normalized_count = (count_now / date.today().isoweekday()) * 7
+        return (normalized_count / count_last_week) - 1, (count_now, count_last_week)
 
     async def get_today_count(self) -> int:
         start = date.today()
