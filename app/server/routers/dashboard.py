@@ -1,9 +1,10 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from fastapi import APIRouter, Query
 
 from app.server.db_utils.dashboard.summary import Dashboard, DashboardSummary
-from app.server.db_utils.dashboard.top_search import question_ranking, top_topics_of_week, get_word_cloud
+from app.server.db_utils.dashboard.top_search import question_ranking, top_topics_of_week, get_word_cloud, \
+    user_count_trend, message_count_trend, conversation_count_trend, nlp_confidence_trend
 
 Message = Dashboard(DashboardSummary.MESSAGE)
 User = Dashboard(DashboardSummary.USER)
@@ -70,25 +71,43 @@ async def get_conversations():
     return res
 
 
-#
-# @router.get("/middle-part/top-questions")
-# async def top_question(since: list[date] = Query(None)):
-#     weekly_trend_percentage, weekly_trend_target = await Conversation.get_weekly_trend()
-#     monthly_trend_percentage, monthly_trend_target = await Conversation.get_monthly_trend()
-#     res = {
-#         "data": [
-#             {
-#                 "question"
-#                 "count"
-#                 "range"
-#             }
-#         ],
-#         "status": True
-#     }
-#     return res
+@router.post("/middle-part/user-trend")
+async def user_trend(since: list[date]):
+    res = {
+        "data": await user_count_trend(since),
+        "status": True
+    }
+    return res
 
-@router.get("/bottom-part/top-questions")
-async def top_question(sort_by: str = Query(None, alias="sortBy")):
+
+@router.post("/middle-part/message-trend")
+async def message_trend(since: list[date]):
+    res = {
+        "data": await message_count_trend(since),
+        "status": True
+    }
+    return res
+
+
+@router.post("/middle-part/conversation-trend")
+async def message_trend(since: list[date]):
+    res = {
+        "data": await conversation_count_trend(since),
+        "status": True
+    }
+    return res
+
+@router.post("/middle-part/nlp-trend")
+async def message_trend(since: list[date]):
+    res = {
+        "data": await nlp_confidence_trend(since),
+        "status": True
+    }
+    return res
+
+
+@router.get("/bottom-part/questions-trend")
+async def trend_question(sort_by: str = Query(None, alias="sortBy")):
     today = datetime.now()
     # today = datetime(2020, 4, 12)
     data, total_model, average_model = await question_ranking(today, sorter=sort_by)
@@ -98,8 +117,9 @@ async def top_question(sort_by: str = Query(None, alias="sortBy")):
     }
     return res
 
+
 @router.get("/bottom-part/top-topics")
-async def top_question():
+async def top_topics():
     today = datetime.now()
     today = datetime(2020, 4, 1)
     data = await top_topics_of_week(today)
@@ -110,12 +130,14 @@ async def top_question():
     }
     return res
 
+
 @router.get("/bottom-part/word-cloud")
 async def word_cloud():
     today = datetime.now()
     today = datetime(2020, 4, 1)
     res = {
         "data": await get_word_cloud(today),
+        "date": today,
         "status": True
     }
     return res

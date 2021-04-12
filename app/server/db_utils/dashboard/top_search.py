@@ -1,12 +1,15 @@
 from datetime import timedelta, datetime, date
+from statistics import fmean
+from typing import Union, Optional
 
 from bson import SON
 from pydantic.main import BaseModel
 
-from app.server.db.collections import message_collection
+from app.server.db.collections import message_collection, bot_user_collection
 from app.server.db_utils.helper import common_helper
 from app.server.models.dashboard import QuestionRankingDataModel
 from app.server.routers.word_cloud.stop_words import default_stop_words
+from app.server.utils.common import to_camel
 from app.server.utils.timezone import make_timezone_aware
 
 
@@ -198,7 +201,7 @@ async def get_word_cloud(today: datetime):
                 {"$addFields": {"words": {"$map": {"input": {"$split": ["$data.text", " "]},
                                                    "as": "str",
                                                    "in": {"$trim": {"input": {"$toLower": ["$$str"]},
-                                                                    "chars": " ,|(){}-<>.;"}}}}}},
+                                                                    "chars": " ,|(){}-<>:!.;"}}}}}},
                 {"$unwind": {"path": "$words", "preserveNullAndEmptyArrays": False}},
                 {"$match": {"words": {"$nin": default_stop_words}}},
                 {"$group": {"_id": "$words", "count": {"$sum": 1}}},
@@ -208,3 +211,212 @@ async def get_word_cloud(today: datetime):
     async for item in message_collection.aggregate(pipeline):
         res.append(common_helper(item))
     return res
+
+
+class UserTrendModel(BaseModel):
+    date: date
+    new_user: int
+    active_user: int
+    total: int
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+
+
+async def user_count_trend(since: list[date], region: str = "Asia/Singapore"):
+    one_day_delta = timedelta(days=1)
+    start = make_timezone_aware(since[0])
+    end = make_timezone_aware(since[1]) + one_day_delta
+    # returning users = all users chatting on the day - new users
+    # {
+    #     "date" : "2021-3-24",
+    #     "count" : NumberInt(11)
+    # }
+    pipeline = [{"$match": {"created_at": {"$gte": start,
+                                           "$lte": end}}},
+                {"$group": {"_id": {"year": {"$toString": {"$year": {"date": "$created_at", "timezone": region}}},
+                                    "month": {"$toString": {"$month": {"date": "$created_at", "timezone": region}}},
+                                    "day": {"$toString": {"$dayOfMonth": {"date": "$created_at", "timezone": region}}}},
+                            "count": {"$sum": 1}}},
+                {"$project": {"date": {"$concat": ["$_id.year", "-", "$_id.month", "-", "$_id.day"]},
+                              "count": 1,
+                              "_id": 0}}]
+
+    new_users_count = {}
+    async for days in bot_user_collection.aggregate(pipeline):
+        new_users_count[days['date']] = days['count']
+
+    # all users chatting on the day
+    # {
+    #     "date" : "2021-3-24",
+    #     "count" : NumberInt(11)
+    # }
+    pipeline = [{"$match": {"created_at": {"$gte": start, "$lte": end}, "handler": "bot"}},
+                {"$group": {
+                    "_id": {"year": {"$toString": {"$year": {"date": "$created_at", "timezone": region}}},
+                            "month": {"$toString": {"$month": {"date": "$created_at", "timezone": region}}},
+                            "day": {"$toString": {"$dayOfMonth": {"date": "$created_at", "timezone": region}}}},
+                    "users_chatted": {"$addToSet": "$sender_id"}}},
+                {"$project": {"date": {"$concat": ["$_id.year", "-", "$_id.month", "-", "$_id.day"]},
+                              "count": {"$size": "$users_chatted"},
+                              "_id": 0}}]
+    all_users_count = {}
+    async for days in message_collection.aggregate(pipeline):
+        all_users_count[days['date']] = days['count']
+
+    res = []
+    while start < end:
+        datestr = start.strftime('%Y-%-m-%-d')
+        new_users = new_users_count.get(datestr, 0)
+        all_users = all_users_count.get(datestr, 0)
+        entry = {
+            "date": datestr,
+            "new_user": new_users,
+            "active_user": all_users - new_users,
+            "total": all_users
+        }
+        res.append(UserTrendModel(**entry))
+        start += one_day_delta
+    return res
+
+
+class MessageTrendModel(BaseModel):
+    date: date
+    postback: int
+    message: int
+    total: int
+
+
+async def message_count_trend(since: list[date], region: str = "Asia/Singapore"):
+    one_day_delta = timedelta(days=1)
+    start = make_timezone_aware(since[0])
+    end = make_timezone_aware(since[1]) + one_day_delta
+    # postbacks = all messages of the day - text messages
+    # {
+    #     "date" : "2021-3-24",
+    #     "count" : NumberInt(11)
+    # }
+    pipeline = [{"$match": {"created_at": {"$gte": start,
+                                           "$lte": end},
+                            "handler": "bot",
+                            "type": "postback"}},
+                {"$group": {"_id": {"year": {"$toString": {"$year": {"date": "$created_at", "timezone": region}}},
+                                    "month": {"$toString": {"$month": {"date": "$created_at", "timezone": region}}},
+                                    "day": {"$toString": {"$dayOfMonth": {"date": "$created_at", "timezone": region}}}},
+                            "count": {"$sum": 1}}},
+                {"$project": {"date": {"$concat": ["$_id.year", "-", "$_id.month", "-", "$_id.day"]},
+                              "count": 1,
+                              "_id": 0}}]
+
+    postback_count = {}
+    async for days in message_collection.aggregate(pipeline):
+        postback_count[days['date']] = days['count']
+
+    # messages of the day
+    pipeline[0]['$match'].pop('type')
+    message_count = {}
+    async for days in message_collection.aggregate(pipeline):
+        message_count[days['date']] = days['count']
+
+    res = []
+    while start < end:
+        datestr = start.strftime('%Y-%-m-%-d')
+        message = message_count.get(datestr, 0)
+        postback = postback_count.get(datestr, 0)
+        entry = {
+            "date": datestr,
+            "message": message,
+            "postback": postback,
+            "total": message + postback
+        }
+        res.append(MessageTrendModel(**entry))
+        start += one_day_delta
+    return res
+
+
+class ConversationTrendModel(BaseModel):
+    date: date
+    total: int
+
+
+async def conversation_count_trend(since: list[date], region: str = "Asia/Singapore"):
+    one_day_delta = timedelta(days=1)
+    start = make_timezone_aware(since[0])
+    end = make_timezone_aware(since[1]) + one_day_delta
+    # postbacks = all messages of the day - text messages
+    # {
+    #     "date" : "2021-3-24",
+    #     "count" : NumberInt(11)
+    # }
+    pipeline = [{"$match": {"created_at": {"$gte": start, "$lte": end}, "handler": "bot"}},
+                {"$group": {
+                    "_id": {"year": {"$toString": {"$year": {"date": "$created_at", "timezone": region}}},
+                            "month": {"$toString": {"$month": {"date": "$created_at", "timezone": region}}},
+                            "day": {"$toString": {"$dayOfMonth": {"date": "$created_at", "timezone": region}}}},
+                    "conversations": {"$addToSet": "$sender_id"}}},
+                {"$project": {"date": {"$concat": ["$_id.year", "-", "$_id.month", "-", "$_id.day"]},
+                              "count": {"$size": "$conversations"},
+                              "_id": 0}}]
+
+    conversation_count = {}
+    async for days in message_collection.aggregate(pipeline):
+        conversation_count[days['date']] = days['count']
+
+    res = []
+    while start < end:
+        datestr = start.strftime('%Y-%-m-%-d')
+        conversation = conversation_count.get(datestr, 0)
+        entry = {
+            "date": datestr,
+            "total": conversation
+        }
+        res.append(ConversationTrendModel(**entry))
+        start += one_day_delta
+    return res
+
+
+class NlpTrendAreaLine(BaseModel):
+    time: str
+    value: Union[list[float], float, None, list[None]]
+
+
+class NlpTrendModel(BaseModel):
+    area: list[NlpTrendAreaLine]
+    line: list[NlpTrendAreaLine]
+
+
+async def nlp_confidence_trend(since: list[date], region: str = "Asia/Singapore") -> NlpTrendModel:
+    one_day_delta = timedelta(days=1)
+    start = make_timezone_aware(since[0])
+    end = make_timezone_aware(since[1]) + one_day_delta
+    # postbacks = all messages of the day - text messages
+    # {
+    #     "date" : "2021-3-24",
+    #     "count" : NumberInt(11)
+    # }
+    pipeline = [{"$match": {"created_at": {"$gte": start, "$lte": end}, "handler": "bot"}},
+                {"$group": {
+                    "_id": {"year": {"$toString": {"$year": {"date": "$created_at", "timezone": region}}},
+                            "month": {"$toString": {"$month": {"date": "$created_at", "timezone": region}}},
+                            "day": {"$toString": {"$dayOfMonth": {"date": "$created_at", "timezone": region}}}},
+                    "confidences": {"$push": "$chatbot.highest_confidence"}}},
+                {"$project": {"date": {"$concat": ["$_id.year", "-", "$_id.month", "-", "$_id.day"]},
+                              "confidences": 1,
+                              "_id": 0}}]
+
+    confidence_stats = {}
+    async for days in message_collection.aggregate(pipeline):
+        data = [c for c in days['confidences'] if c < 1]
+        confidence_stats[days['date']] = {"min": min(data), "max": max(data), "mean": fmean(data)}
+
+    res = {"area": [], "line": []}
+    while start < end:
+        datestr = start.strftime('%Y-%-m-%-d')
+        confidence = confidence_stats.get(datestr, {"min": None, "max": None, "mean": None})
+        entry = {"date": datestr} | confidence
+
+        res['area'].append({"time": datestr, "value": [entry['min'], entry['max']]})
+        res['line'].append({"time": datestr, "value": entry['mean']})
+        start += one_day_delta
+    return NlpTrendModel(**res)

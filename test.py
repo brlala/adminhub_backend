@@ -10,16 +10,35 @@ question_collection = database["question"]
 message_collection = database["message"]
 flow_collection = database["flow"]
 
-query = {}
-
-# # add triggered count
+"""
+add triggered count
+"""
 # cursor = question_collection.find({})
 # for q in cursor:
 #     question_collection.update_one({"_id": q['_id']}, {"$set": {"triggered_count": random.randint(1000, 5000)}})
-# # add triggered count(flow)
+
+"""
+add triggered count(flow)
+"""
+
 # cursor = flow_collection.find({})
 # for q in cursor:
 #     flow_collection.update_one({"_id": q['_id']}, {"$set": {"triggered_count": random.randint(300, 5000)}})
-# add handler
-message_collection.update_many({"receiver_id": ObjectId('5c78f794df78b45f7f8c6a5e')}, {"$set": {"handler": 'bot'}})
-message_collection.update_many({"sender_id": ObjectId('5c78f794df78b45f7f8c6a5e')}, {"$set": {"handler": 'user'}})
+
+"""
+add handler
+"""
+# message_collection.update_many({"receiver_id": ObjectId('5c78f794df78b45f7f8c6a5e')}, {"$set": {"handler": 'bot'}})
+# message_collection.update_many({"sender_id": ObjectId('5c78f794df78b45f7f8c6a5e')}, {"$set": {"handler": 'user'}})
+
+"""
+add nlp confidence
+"""
+#11 min - 954180
+cursor = message_collection.find({"handler": 'bot'})
+for q in cursor:
+    score = random.uniform(0.2, 0.8)
+    if matched_questions := q.get('nlp', {}).get('nlp_response', {}).get('matched_questions', {}):
+        if matched_questions:
+            score = matched_questions[0]['score']
+    message_collection.update_one({"_id": q['_id']}, {"$set": {"chatbot.highest_confidence": score}})
