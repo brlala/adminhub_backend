@@ -19,15 +19,15 @@ router = APIRouter(
 
 @router.get("/top-part/messages")
 async def get_user_message():
-    weekly_trend_percentage, weekly_trend_target = await Message.get_weekly_trend()
-    monthly_trend_percentage, monthly_trend_target = await Message.get_monthly_trend()
+    weekly_trend_percentage, (wtd_count, count_last_week) = await Message.get_weekly_trend()
+    monthly_trend_percentage, (mtd_count, count_last_month) = await Message.get_monthly_trend()
     res = {
         "data": {
             "total": await Message.get_total_count(),
             "monthlyTrend": monthly_trend_percentage,
-            "monthlyTarget": monthly_trend_target,
+            "monthlyTarget": {"count": mtd_count, "target": count_last_month},
             "weeklyTrend": weekly_trend_percentage,
-            "weeklyTarget": weekly_trend_target,
+            "weeklyTarget": {"count": wtd_count, "target": count_last_week},
             "daily": await Message.get_today_count()
         },
         "status": True
@@ -37,15 +37,15 @@ async def get_user_message():
 
 @router.get("/top-part/users")
 async def get_users():
-    weekly_trend_percentage, weekly_trend_target = await User.get_weekly_trend()
-    monthly_trend_percentage, monthly_trend_target = await User.get_monthly_trend()
+    weekly_trend_percentage, (wtd_count, count_last_week) = await User.get_weekly_trend()
+    monthly_trend_percentage, (mtd_count, count_last_month) = await User.get_monthly_trend()
     res = {
         "data": {
             "total": await User.get_total_count(),
             "monthlyTrend": monthly_trend_percentage,
-            "monthlyTarget": monthly_trend_target,
+            "monthlyTarget": {"count": mtd_count, "target": count_last_month},
             "weeklyTrend": weekly_trend_percentage,
-            "weeklyTarget": weekly_trend_target,
+            "weeklyTarget": {"count": wtd_count, "target": count_last_week},
             "daily": await User.get_today_count()
         },
         "status": True
@@ -55,15 +55,15 @@ async def get_users():
 
 @router.get("/top-part/conversations")
 async def get_conversations():
-    weekly_trend_percentage, weekly_trend_target = await Conversation.get_weekly_trend()
-    monthly_trend_percentage, monthly_trend_target = await Conversation.get_monthly_trend()
+    weekly_trend_percentage, (wtd_count, count_last_week) = await Conversation.get_weekly_trend()
+    monthly_trend_percentage, (mtd_count, count_last_month) = await Conversation.get_monthly_trend()
     res = {
         "data": {
             "total": await Conversation.get_total_count(),
             "monthlyTrend": monthly_trend_percentage,
-            "monthlyTarget": monthly_trend_target,
+            "monthlyTarget": {"count": mtd_count, "target": count_last_month},
             "weeklyTrend": weekly_trend_percentage,
-            "weeklyTarget": weekly_trend_target,
+            "weeklyTarget": {"count": wtd_count, "target": count_last_week},
             "daily": await Conversation.get_today_count()
         },
         "status": True
@@ -96,6 +96,7 @@ async def message_trend(since: list[date]):
         "status": True
     }
     return res
+
 
 @router.post("/middle-part/nlp-trend")
 async def message_trend(since: list[date]):

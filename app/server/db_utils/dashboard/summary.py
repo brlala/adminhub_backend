@@ -39,23 +39,10 @@ class DashboardConversation:
                   ("created_at", {"$lte": make_timezone_aware(end)} if end else ...)]
         query = form_query(db_key)
 
-        pipeline = [
-            {"$match": query},
-            {u"$group": {
-                    u"_id": None,
-                    u"count": {
-                        u"$addToSet": u"$chatbot.convo_id"
-                    }
-                }
-            },
-            {
-                u"$project": {
-                    u"count": {
-                        u"$size": u"$count"
-                    }
-                }
-            }
-        ]
+        pipeline = [{"$match": query},
+                    {"$group": {"_id": None,
+                                "count": {"$addToSet": "$chatbot.convo_id"}}},
+                    {"$project": {"count": {"$size": "$count"}}}]
 
         cursor = message_collection.aggregate(pipeline)
         async for count in cursor:
@@ -85,7 +72,7 @@ class Dashboard:
 
         now = datetime.now()
         count_now = await self.dashboard_summary.get_count(start=end_of_last_month, end=now)
-        return count_now / count_last_month, f"{count_now}/{count_last_month}"
+        return count_now / count_last_month, (count_now, count_last_month)
 
     async def get_weekly_trend(self) -> (float, str):
         today = date.today()
@@ -96,7 +83,7 @@ class Dashboard:
 
         now = datetime.now()
         count_now = await self.dashboard_summary.get_count(start=monday_of_this_week, end=now)
-        return count_now / count_last_week, f"{count_now}/{count_last_week}"
+        return count_now / count_last_week, (count_now, count_last_week)
 
     async def get_today_count(self) -> int:
         start = date.today()
