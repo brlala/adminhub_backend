@@ -354,7 +354,7 @@ async def conversation_count_trend(since: list[date], region: str = "Asia/Singap
                     "_id": {"year": {"$toString": {"$year": {"date": "$created_at", "timezone": region}}},
                             "month": {"$toString": {"$month": {"date": "$created_at", "timezone": region}}},
                             "day": {"$toString": {"$dayOfMonth": {"date": "$created_at", "timezone": region}}}},
-                    "conversations": {"$addToSet": "$sender_id"}}},
+                    "conversations": {"$addToSet": "$chatbot.convo_id"}}},
                 {"$project": {"date": {"$concat": ["$_id.year", "-", "$_id.month", "-", "$_id.day"]},
                               "count": {"$size": "$conversations"},
                               "_id": 0}}]

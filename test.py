@@ -1,6 +1,5 @@
 import random
 
-from bson import ObjectId
 from pymongo import MongoClient
 
 client = MongoClient(
@@ -34,11 +33,16 @@ add handler
 """
 add nlp confidence
 """
-#11 min - 954180
-cursor = message_collection.find({"handler": 'bot'})
-for q in cursor:
-    score = random.uniform(0.2, 0.8)
-    if matched_questions := q.get('nlp', {}).get('nlp_response', {}).get('matched_questions', {}):
-        if matched_questions:
-            score = matched_questions[0]['score']
-    message_collection.update_one({"_id": q['_id']}, {"$set": {"chatbot.highest_confidence": score}})
+# #11 min - 954180
+# cursor = message_collection.update_many({}, {"$unset": {"chatbot.highest_confidence": ""}})
+#
+# query = {"handler": "bot",
+#          "$or": [{"chatbot.qnid": {"$exists": True}},
+#                  {"chatbot.unanswered": {"$exists": True}}]}
+#
+# cursor = message_collection.find(query)
+# for q in cursor:
+#     score = random.uniform(0.2, 0.8)
+#     if matched_questions := q.get('nlp', {}).get('nlp_response', {}).get('matched_questions', {}):
+#         score = matched_questions[0]['score']
+#     message_collection.update_one({"_id": q['_id']}, {"$set": {"chatbot.highest_confidence": score}})
