@@ -69,7 +69,7 @@ async def question_ranking_data(recent, past, sorter):
             "trend": 0
         }
         if key in past:
-            temp['trend'] = (recent[key].count / past[key].count) - 1 if recent.get(key) else -1
+            temp['trend'] = (recent[key].count / past[key].count) - 1 if recent.get(key) else None
 
         res.append(temp)
 
@@ -103,7 +103,7 @@ async def question_ranking_total(recent, past, today: date) -> (int, float, list
     today = today.today()  # ignore time
     recent_total = sum([value.count for key, value in recent.items()])
     past_total = sum([value.count for key, value in past.items()])
-    total_trend = recent_total / past_total if past_total else 0
+    total_trend = (recent_total / past_total) - 1 if past_total else None
     history = []
     # get past 7 days total
     start_date = today - timedelta(days=7)
@@ -133,9 +133,9 @@ class QuestionAverageViewModel(BaseModel):
 
 async def question_ranking_average(recent, past, today: date) -> (int, float, list[dict]):
     today = today.today()  # ignore time
-    recent_average = sum([value.count for key, value in recent.items()]) / len(recent) if len(recent) else 0
-    past_average = sum([value.count for key, value in past.items()]) / len(recent) if len(recent) else 0
-    average_trend = recent_average / past_average if past_average else 0
+    recent_average = sum([value.count for key, value in recent.items()]) / len(recent) if len(recent) else None
+    past_average = sum([value.count for key, value in past.items()]) / len(recent) if len(recent) else None
+    average_trend = (recent_average / past_average) -1 if past_average else None
     history = []
     # get past 7 days average
     start_date = today - timedelta(days=7)
@@ -148,7 +148,7 @@ async def question_ranking_average(recent, past, today: date) -> (int, float, li
 
         count = await message_collection.count_documents(query)
         question = await message_collection.distinct('chatbot.qnid', query)
-        average = count / len(question) if count else 0
+        average = count / len(question) if count else None
         history.append(QuestionAverageHistoryViewModel(**{"date": start_date, "average": average}))
         start_date += one_day_delta
     return QuestionAverageViewModel(**{"value": recent_average, "history": history, "trend": average_trend})

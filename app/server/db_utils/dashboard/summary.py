@@ -100,17 +100,17 @@ class DashboardAnswerRate:
         answered_count = await self.get_answered_count()
         unanswered_count = await self.get_unanswered_count()
         total = answered_count + unanswered_count
-        return answered_count / total if total else 0
+        return answered_count / total if total else None
 
     async def get_monthly_answered_rate(self) -> float:
         answered_count, unanswered_count, total = await self.get_monthly_answered_count()
         total = answered_count + unanswered_count
-        return answered_count / total if total else 0
+        return answered_count / total if total else None
 
     async def get_weekly_answered_rate(self) -> float:
         answered_count, unanswered_count, total = await self.get_weekly_answered_count()
         total = answered_count + unanswered_count
-        return answered_count / total if total else 0
+        return answered_count / total if total else None
 
     async def get_total_answered_count(self) -> (float, str):
         answered_count = await self.get_answered_count()
@@ -143,7 +143,7 @@ class DashboardAnswerRate:
         answered_count = await self.get_answered_count(start=start, end=now)
         unanswered_count = await self.get_unanswered_count(start=start, end=now)
         total = answered_count + unanswered_count
-        return answered_count / total if total else 0
+        return answered_count / total if total else None
 
     async def get_answered_count(self, *, start: date = None, end: date = None) -> int:
         db_key = [("chatbot.qnid", {"$exists": True}),
