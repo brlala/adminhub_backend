@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime, date
 from statistics import fmean
-from typing import Union, Optional
+from typing import Union
 
 from bson import SON
 from pydantic.main import BaseModel
@@ -420,3 +420,31 @@ async def nlp_confidence_trend(since: list[date], region: str = "Asia/Singapore"
         res['line'].append({"time": datestr, "value": entry['mean']})
         start += one_day_delta
     return NlpTrendModel(**res)
+
+
+async def top_question(since: list[date], language: str = "EN") -> list[QuestionRankingDataModel]:
+    one_day_delta = timedelta(days=1)
+    start = make_timezone_aware(since[0])
+    end = make_timezone_aware(since[1]) + one_day_delta
+    # postbacks = all messages of the day - text messages
+    # {
+    #     "text" : "Show Form",
+    #     "count" : NumberInt(11)
+    # }
+    pipeline = [{"$match": {"created_at": {"$gte": start, "$lte": end},
+                            "handler": "bot",
+                            "chatbot.qnid": {"$exists": True}}},
+                {"$group": {"_id": "$chatbot.qnid",
+                            "count": {"$sum": 1.0}}},
+                {"$lookup": {"from": "question",
+                             "localField": "_id",
+                             "foreignField": "_id",
+                             "as": "question"}},
+                {"$sort": SON([("count", -1)])},
+                {"$unwind": {"path": "$question",
+                             "preserveNullAndEmptyArrays": False}},
+                {"$replaceRoot": {"newRoot": {"_id": "$_id", "count": "$count", "text": f"$question.text.{language}"}}}]
+    res = []
+    async for item in message_collection.aggregate(pipeline):
+        res.append(QuestionRankingDataModel(**common_helper(item)))
+    return res

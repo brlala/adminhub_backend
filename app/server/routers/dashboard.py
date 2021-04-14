@@ -2,13 +2,14 @@ from datetime import datetime, date
 
 from fastapi import APIRouter, Query
 
-from app.server.db_utils.dashboard.summary import Dashboard, DashboardSummary
+from app.server.db_utils.dashboard.summary import Dashboard, DashboardSummary, DashboardAnswerRate
 from app.server.db_utils.dashboard.top_search import question_ranking, top_topics_of_week, get_word_cloud, \
-    user_count_trend, message_count_trend, conversation_count_trend, nlp_confidence_trend
+    user_count_trend, message_count_trend, conversation_count_trend, nlp_confidence_trend, top_question
 
 Message = Dashboard(DashboardSummary.MESSAGE)
 User = Dashboard(DashboardSummary.USER)
 Conversation = Dashboard(DashboardSummary.CONVERSATION)
+AnswerRate = DashboardAnswerRate()
 
 router = APIRouter(
     tags=["dashboard"],
@@ -71,6 +72,31 @@ async def get_conversations():
     return res
 
 
+@router.get("/top-part/answer-rate")
+async def get_conversations():
+    weekly_answered_count, weekly_unanswered_count, weekly_total = await AnswerRate.get_weekly_answered_count()
+    monthly_answered_count, monthly_unanswered_count, monthly_total = await AnswerRate.get_monthly_answered_count()
+    total_answered_count, total_unanswered_count, total = await AnswerRate.get_total_answered_count()
+    res = {
+        "data": {
+            "total": {"answered": total_answered_count,
+                      "unanswered": total_unanswered_count,
+                      "total": total,
+                      "rate": await AnswerRate.get_total_answered_rate()},
+            "monthly": {"answered": monthly_answered_count,
+                        "unanswered": monthly_unanswered_count,
+                        "total": monthly_total,
+                        "rate": await AnswerRate.get_monthly_answered_rate()},
+            "weekly": {"answered": weekly_answered_count,
+                       "unanswered": weekly_unanswered_count,
+                       "total": weekly_total,
+                       "rate": await AnswerRate.get_weekly_answered_rate()},
+        },
+        "status": True
+    }
+    return res
+
+
 @router.post("/middle-part/user-trend")
 async def user_trend(since: list[date]):
     res = {
@@ -102,6 +128,15 @@ async def message_trend(since: list[date]):
 async def message_trend(since: list[date]):
     res = {
         "data": await nlp_confidence_trend(since),
+        "status": True
+    }
+    return res
+
+
+@router.post("/middle-part/top-question")
+async def message_trend(since: list[date]):
+    res = {
+        "data": await top_question(since),
         "status": True
     }
     return res
