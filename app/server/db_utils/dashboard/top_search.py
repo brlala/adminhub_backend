@@ -100,7 +100,7 @@ class QuestionTotalViewModel(BaseModel):
 
 
 async def question_ranking_total(recent, past, today: date) -> (int, float, list[dict]):
-    today = today.today()  # ignore time
+    # today = today.today()  # ignore time
     recent_total = sum([value.count for key, value in recent.items()])
     past_total = sum([value.count for key, value in past.items()])
     total_trend = (recent_total / past_total) - 1 if past_total else None
@@ -132,7 +132,7 @@ class QuestionAverageViewModel(BaseModel):
 
 
 async def question_ranking_average(recent, past, today: date) -> (int, float, list[dict]):
-    today = today.today()  # ignore time
+    # today = today.today()  # ignore time
     recent_average = sum([value.count for key, value in recent.items()]) / len(recent) if len(recent) else None
     past_average = sum([value.count for key, value in past.items()]) / len(recent) if len(recent) else None
     average_trend = (recent_average / past_average) -1 if past_average else None
