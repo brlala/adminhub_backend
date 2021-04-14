@@ -35,4 +35,4 @@ default_stop_words = ['', 'throughout', 'his', "i'd", 'noone', 'between', 'anywh
                       'serious', 'front', 'nevertheless', 'next', 'which', '‘ve', 'amongst', "mustn't", 'those', 'all',
                       'whatever', 'just', 'around', 'thereafter', "'m", "weren't", 'beside', 'having', 'we', 'three',
                       'besides', 'yours', 'sometime', 'various', 'therefore', 'ought', "there's", 'may', 'being',
-                      'this', "that's", 'per']
+                      'this', "that's", 'per', 'e']

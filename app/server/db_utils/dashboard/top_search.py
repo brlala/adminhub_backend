@@ -201,7 +201,7 @@ async def get_word_cloud(today: datetime):
                 {"$addFields": {"words": {"$map": {"input": {"$split": ["$data.text", " "]},
                                                    "as": "str",
                                                    "in": {"$trim": {"input": {"$toLower": ["$$str"]},
-                                                                    "chars": " ,|(){}-<>:!.;"}}}}}},
+                                                                    "chars": " ?,|(){}-<>:!.;"}}}}}},
                 {"$unwind": {"path": "$words", "preserveNullAndEmptyArrays": False}},
                 {"$match": {"words": {"$nin": default_stop_words}}},
                 {"$group": {"_id": "$words", "count": {"$sum": 1}}},
