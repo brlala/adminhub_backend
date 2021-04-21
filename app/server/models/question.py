@@ -12,7 +12,7 @@ class QuestionVariationSchema(BaseModel):
     id: str
     text: str
     language: str
-    internal: bool
+    internal: Optional[bool]
 
 
 class QuestionAnswerSchema(BaseModel):
@@ -34,7 +34,6 @@ class QuestionSchemaDb(QuestionSchemaDbToBeImplement):
     updated_at: datetime
     updated_by: Optional[str]  # TODO this should be null
     text: dict
-    internal: bool
     keyword: Optional[list[str]]
     answers: list[QuestionAnswerSchema]
     alternate_questions: list[QuestionVariationSchema]

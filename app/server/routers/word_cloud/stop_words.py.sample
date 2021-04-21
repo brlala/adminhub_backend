@@ -1,4 +1,4 @@
-This stopword list is taken from Spacy and Mongodb default stopwords documentation, rename this to stop_words.py
+# This stopword list is taken from Spacy and Mongodb default stopwords documentation, rename this to stop_words.py
 default_stop_words = ['', 'throughout', 'his', "i'd", 'noone', 'between', 'anywhere', 'whither', 'whose', 'see',
                       'afterwards', "wasn't", 'beforehand', 'have', 'any', 'something', 'side', 'in', 'still', 'are',
                       'an', 'much', 'us', "you're", "we're", 'says', 'thereupon', 'becoming', "shan't", '‘s', 'where',

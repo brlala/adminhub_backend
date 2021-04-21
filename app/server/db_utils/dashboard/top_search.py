@@ -94,8 +94,8 @@ class QuestionTotalHistoryViewModel(BaseModel):
 
 
 class QuestionTotalViewModel(BaseModel):
-    value: int
-    trend: float
+    value: Union[int, None]
+    trend: Union[float, None]
     history: list[QuestionTotalHistoryViewModel]
 
 
@@ -126,8 +126,8 @@ class QuestionAverageHistoryViewModel(BaseModel):
 
 
 class QuestionAverageViewModel(BaseModel):
-    value: float
-    trend: float
+    value: Union[float, None]
+    trend: Union[float, None]
     history: list[QuestionAverageHistoryViewModel]
 
 
